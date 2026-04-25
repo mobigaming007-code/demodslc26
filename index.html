@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Đăng nhập - DSLC 2026</title>
+  <title>Cổng thông tin - DSLC 2026</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      theme: { extend: { colors: { greenDSLC: '#2E7D32' } } }
+      theme: { extend: { colors: { greenDSLC: '#2E7D32', admin: '#1E3A8A' } } }
     }
   </script>
 </head>
 <body class="bg-gray-100 h-screen flex items-center justify-center p-4">
 
-  <div class="bg-white p-8 rounded-2xl shadow-lg max-w-sm w-full">
+  <div class="bg-white p-8 rounded-2xl shadow-lg max-w-sm w-full relative">
     <div class="text-center mb-6">
       <h1 class="text-2xl font-black text-greenDSLC">ĐỔI SÁCH LẤY CÂY</h1>
       <p class="text-sm text-gray-500 font-medium mt-1">Cổng thông tin Tình nguyện viên</p>
@@ -22,85 +22,135 @@
 
     <div id="resultBox" class="hidden p-3 rounded-lg text-sm text-center font-bold mb-4"></div>
 
-    <div class="space-y-4">
+    <div id="formTNV" class="space-y-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Tài khoản (Mã TNV / SĐT)</label>
-        <input type="text" id="username" class="w-full border border-gray-300 rounded-lg p-3 bg-gray-50 focus:outline-none focus:border-greenDSLC focus:ring-1 focus:ring-greenDSLC" placeholder="Nhập mã TNV...">
-      </div>
-      
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
-        <input type="password" id="password" class="w-full border border-gray-300 rounded-lg p-3 bg-gray-50 focus:outline-none focus:border-greenDSLC focus:ring-1 focus:ring-greenDSLC" placeholder="Nhập mật khẩu...">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Mã Tình nguyện viên</label>
+        <input type="text" id="maTNV" class="w-full border border-gray-300 rounded-lg p-3 bg-gray-50 focus:outline-none focus:border-greenDSLC focus:ring-1 focus:ring-greenDSLC uppercase" placeholder="VD: DSLC001">
       </div>
 
-      <button id="btnLogin" onclick="login()" class="w-full bg-greenDSLC text-white font-bold py-3.5 rounded-lg mt-2 shadow hover:bg-green-800 transition">
-        ĐĂNG NHẬP
+      <button id="btnTNV" onclick="loginTNV()" class="w-full bg-greenDSLC text-white font-bold py-3.5 rounded-lg shadow hover:bg-green-800 transition">
+        VÀO TRANG ĐIỂM DANH
       </button>
+      
+      <div class="text-center mt-4">
+        <button onclick="toggleAdminForm()" class="text-xs text-gray-400 hover:text-admin underline">Truy cập dành cho Ban điều hành</button>
+      </div>
     </div>
+
+    <div id="formAdmin" class="hidden space-y-4">
+      <div class="border-t border-b py-4 mb-2">
+        <p class="text-xs font-bold text-admin uppercase text-center mb-3">Xác thực Ban điều hành</p>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu hệ thống</label>
+          <input type="password" id="adminPass" class="w-full border border-gray-300 rounded-lg p-3 bg-gray-50 focus:outline-none focus:border-admin focus:ring-1 focus:ring-admin" placeholder="Nhập mật khẩu Admin...">
+        </div>
+      </div>
+
+      <button id="btnAdmin" onclick="loginAdmin()" class="w-full bg-admin text-white font-bold py-3.5 rounded-lg shadow hover:bg-blue-900 transition">
+        VÀO TRANG QUẢN TRỊ
+      </button>
+      
+      <div class="text-center mt-4">
+        <button onclick="toggleAdminForm()" class="text-xs text-gray-400 hover:text-greenDSLC underline">Quay lại trang Tình nguyện viên</button>
+      </div>
+    </div>
+
   </div>
 
   <script>
-    // THAY LINK WEB APP API CỦA BẠN VÀO ĐÂY
     const API_URL = "https://script.google.com/macros/s/AKfycbx_5SzbYlbgOzm2rNafbc54KPdBnwx2AqkE3mF0kDpDfxS3ectY8LMUMBXCdzW48e59NQ/exec";
 
-    // Nếu đã có session thì chuyển thẳng vào trang điểm danh luôn
     window.onload = () => {
-      if(sessionStorage.getItem('sessionId')) {
-        window.location.href = 'diemdanh.html';
+      const currentSession = sessionStorage.getItem('sessionId');
+      const currentRole = sessionStorage.getItem('role');
+      if(currentSession) {
+        window.location.href = currentRole === 'Admin' ? 'admin.html' : 'diemdanh.html';
       }
     };
 
     function showResult(success, message) {
       const box = document.getElementById('resultBox');
-      box.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800', 'bg-blue-100', 'text-blue-800');
+      box.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
       box.classList.add(success ? 'bg-green-100' : 'bg-red-100', success ? 'text-green-800' : 'text-red-800');
       box.innerHTML = message;
     }
 
-    async function login() {
-      const u = document.getElementById('username').value.trim();
-      const p = document.getElementById('password').value.trim();
+    function toggleAdminForm() {
+      const fTNV = document.getElementById('formTNV');
+      const fAdmin = document.getElementById('formAdmin');
+      document.getElementById('resultBox').classList.add('hidden');
+      
+      if(fTNV.classList.contains('hidden')) {
+        fTNV.classList.remove('hidden');
+        fAdmin.classList.add('hidden');
+      } else {
+        fTNV.classList.add('hidden');
+        fAdmin.classList.remove('hidden');
+      }
+    }
 
-      if(!u || !p) return showResult(false, "Vui lòng nhập đầy đủ thông tin!");
+    // --- ĐĂNG NHẬP TNV ---
+    async function loginTNV() {
+      const maTNV = document.getElementById('maTNV').value.trim().toUpperCase();
+      if(!maTNV) return showResult(false, "Vui lòng nhập Mã Tình nguyện viên!");
 
-      const btn = document.getElementById('btnLogin');
+      const btn = document.getElementById('btnTNV');
       btn.innerText = '⏳ Đang kiểm tra...';
       btn.disabled = true;
 
       try {
         const response = await fetch(API_URL, {
           method: 'POST',
-          body: JSON.stringify({
-            action: 'login', // Lệnh báo cho server biết đây là đăng nhập
-            username: u,
-            password: p
-          })
+          body: JSON.stringify({ action: 'loginTNV', maTNV: maTNV })
         });
-        
         const res = await response.json();
 
         if (res.success) {
-          showResult(true, "✅ Đăng nhập thành công!");
-          // LƯU SESSION ID VÀO TRÌNH DUYỆT
+          showResult(true, "✅ Xác nhận thành công!");
           sessionStorage.setItem('sessionId', res.sessionId);
-          
-          // Chuyển hướng người dùng (Admin vào trang admin, TNV vào trang điểm danh)
-          setTimeout(() => {
-            if(res.role === 'Admin') {
-              window.location.href = 'admin.html';
-            } else {
-              window.location.href = 'diemdanh.html';
-            }
-          }, 1000);
-
+          sessionStorage.setItem('role', 'TNV');
+          setTimeout(() => window.location.href = 'diemdanh.html', 1000);
         } else {
           showResult(false, "❌ " + res.error);
-          btn.innerText = 'ĐĂNG NHẬP';
+          btn.innerText = 'VÀO TRANG ĐIỂM DANH';
           btn.disabled = false;
         }
       } catch (error) {
         showResult(false, "❌ Lỗi mạng hoặc máy chủ không phản hồi!");
-        btn.innerText = 'ĐĂNG NHẬP';
+        btn.innerText = 'VÀO TRANG ĐIỂM DANH';
+        btn.disabled = false;
+      }
+    }
+
+    // --- ĐĂNG NHẬP ADMIN ---
+    async function loginAdmin() {
+      const pass = document.getElementById('adminPass').value.trim();
+      if(!pass) return showResult(false, "Vui lòng nhập mật khẩu!");
+
+      const btn = document.getElementById('btnAdmin');
+      btn.innerText = '⏳ Đang xác thực...';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'loginAdmin', pass: pass })
+        });
+        const res = await response.json();
+
+        if (res.success) {
+          showResult(true, "✅ Xác thực Admin thành công!");
+          sessionStorage.setItem('sessionId', res.sessionId);
+          sessionStorage.setItem('role', 'Admin');
+          setTimeout(() => window.location.href = 'admin.html', 1000);
+        } else {
+          showResult(false, "❌ " + res.error);
+          btn.innerText = 'VÀO TRANG QUẢN TRỊ';
+          btn.disabled = false;
+        }
+      } catch (error) {
+        showResult(false, "❌ Lỗi kết nối!");
+        btn.innerText = 'VÀO TRANG QUẢN TRỊ';
         btn.disabled = false;
       }
     }
