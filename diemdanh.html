@@ -3,297 +3,165 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Điểm danh - Đổi Sách Lấy Cây 2026</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <title>Điểm Danh - DSLC 2026</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style> body { font-family: 'Roboto', sans-serif; } </style>
+</head>
+<body class="bg-gray-100 pb-10">
+
+  <nav class="bg-green-800 text-white p-4 shadow-md fixed w-full top-0 z-50 flex justify-between items-center">
+    <h1 class="font-bold text-lg">DSLC 2026</h1>
+    <button onclick="logout()" class="text-xs bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg font-bold transition shadow">Đăng xuất</button>
+  </nav>
+
+  <div class="max-w-md mx-auto px-4 pt-20">
+    <div class="flex space-x-1 bg-white p-1 rounded-xl shadow-sm border border-gray-100">
+      <a href="diemdanh.html" class="flex-1 text-center py-2.5 text-xs font-bold rounded-lg bg-green-700 text-white shadow-sm">Điểm danh</a>
+      <a href="minhchung.html" class="flex-1 text-center py-2.5 text-xs font-bold rounded-lg text-gray-500 hover:bg-gray-50 transition">Minh chứng</a>
+      <a href="gcn.html" class="flex-1 text-center py-2.5 text-xs font-bold rounded-lg text-gray-500 hover:bg-gray-50 transition">Nhận GCN</a>
+    </div>
+  </div>
+
+  <main class="max-w-md mx-auto p-4 mt-2 space-y-5">
+    
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-center">
+      <h2 class="font-bold text-green-800 text-lg mb-2">Quét mã QR Điểm danh</h2>
+      <p class="text-xs text-gray-500 mb-4">Đưa camera vào sát mã QR do Trưởng ca cung cấp để ghi nhận.</p>
+      
+      <div id="reader" class="rounded-xl overflow-hidden shadow-inner bg-black w-full aspect-square"></div>
+      <div id="result" class="hidden p-4 rounded-xl shadow-sm text-center font-bold text-sm border mt-4"></div>
+    </div>
+    
+    <div>
+      <div class="flex justify-between items-end mb-3">
+        <h3 class="font-bold text-gray-800">Lịch sử hôm nay</h3>
+        <button onclick="loadHistory()" class="text-xs text-blue-600 underline font-medium">Tải lại</button>
+      </div>
+      <div id="listHistory" class="space-y-3">
+        <p class="text-center text-gray-500 bg-white p-4 rounded-xl shadow-sm text-sm border italic">Đang tải dữ liệu...</p>
+      </div>
+    </div>
+
+  </main>
+
   <script>
-    tailwind.config = {
-      theme: {
-        extend: { colors: { greenDSLC: '#2E7D32', yellowDSLC: '#F9A825' }, fontFamily: { sans: ['Roboto', 'sans-serif'] } }
+    const API_URL = "https://script.google.com/macros/s/AKfycbxDW90QgSOG6BYEIdYtvD557b6yvxNIw0zz0DskWHKQEIhiwqgVDcW7p1TtuNJasr-ITg/exec";
+    const sessionId = sessionStorage.getItem('sessionId');
+
+    // Chặn người dùng chưa đăng nhập
+    if(!sessionId) window.location.href = 'index.html';
+
+    // Tự động tải lịch sử khi vừa vào trang
+    window.onload = loadHistory;
+
+    function logout() {
+      if(confirm("Đăng xuất khỏi tài khoản?")) {
+        sessionStorage.clear();
+        window.location.href = 'index.html';
       }
     }
-  </script>
-</head>
-<body class="bg-gray-100 text-gray-800 pb-10">
-  
-  <nav class="bg-greenDSLC text-white shadow-md p-4 flex justify-between items-center fixed w-full top-0 z-50">
-    <h1 class="text-lg font-bold">Đổi Sách Lấy Cây 2026</h1>
-    <div class="text-sm font-medium">Tình nguyện viên</div>
-<button onclick="logout()" class="text-xs bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-lg font-bold transition shadow-sm border border-red-400">
-        Đăng xuất
-      </button>
-</div>
-  </nav>
-  <div class="max-w-md mx-auto px-4 pt-4">
-  <div class="flex space-x-1 bg-white p-1 rounded-xl shadow-sm border border-gray-100">
-    <a href="diemdanh.html" class="nav-link flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all" id="nav-diemdanh">Điểm danh</a>
-    <a href="minhchung.html" class="nav-link flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all text-gray-500 hover:bg-gray-50" id="nav-minhchung">Minh chứng</a>
-    <a href="gcn.html" class="nav-link flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all text-gray-500 hover:bg-gray-50" id="nav-gcn">Nhận GCN</a>
-  </div>
-</div>
-  <div class="max-w-md mx-auto p-4 space-y-6 pt-20">
 
-    <div id="resultBox" class="hidden p-4 rounded-xl shadow-sm text-center font-bold"></div>
-
-    <div class="bg-white rounded-xl shadow p-4">
-      <h2 class="font-bold text-lg text-greenDSLC border-b pb-2 mb-4 text-center">Quét mã QR Điểm danh</h2>
-      <p class="text-sm text-gray-600 mb-4 text-center">Hướng ống kính vào mã QR tại bàn trực khu vực.</p>
-      
-      <div id="reader-container" class="hidden w-full mb-4 relative rounded-lg overflow-hidden bg-black shadow-inner">
-        <video id="video" class="w-full h-auto object-cover" playsinline></video>
-        <div id="scan-line" class="absolute w-full h-1 bg-green-500 opacity-75 top-1/2 left-0 transform -translate-y-1/2 shadow-[0_0_10px_2px_rgba(34,197,94,0.8)]"></div>
-      </div>
-      
-      <div id="fallback-container" class="hidden mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-center shadow-sm">
-         <p class="text-red-600 font-bold mb-2">❌ Trình duyệt đang chặn Camera</p>
-         <p class="text-xs text-gray-700 mb-3">Vui lòng dùng ứng dụng máy ảnh chụp lại mã QR trên bàn, sau đó bấm nút tải ảnh lên dưới đây để điểm danh.</p>
-         <input type="file" id="qr-upload" accept="image/*" onchange="scanImage(event)" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-greenDSLC file:text-white hover:file:bg-green-800 cursor-pointer">
-      </div>
-
-      <canvas id="canvas" hidden></canvas>
-
-      <button id="btnScan" onclick="startScanner()" class="w-full bg-greenDSLC text-white font-bold py-4 rounded-lg shadow-md hover:bg-green-800 transition flex justify-center items-center gap-2">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H5v3a1 1 0 01-2 0V4zm14-1a1 1 0 011 1v3a1 1 0 01-2 0V5h-3a1 1 0 010-2h4zM4 17a1 1 0 012 0v3h3a1 1 0 010 2H5a1 1 0 01-1-1v-4zm15 1a1 1 0 01-2 0v-3a1 1 0 010-2h3v4a1 1 0 01-1 1z"></path></svg>
-        MỞ CAMERA QUÉT QR
-      </button>
-
-      <button id="btnClose" onclick="stopScanner()" class="hidden w-full mt-2 bg-gray-200 text-gray-700 font-bold py-3 rounded-lg shadow hover:bg-gray-300 transition">Hủy quét</button>
-    </div>
-
-    <div>
-      <h3 class="font-bold text-lg mb-3">Lịch sử điểm danh hôm nay</h3>
-      <div id="listHistory" class="space-y-3">
-        <p class="text-center text-gray-500 bg-white p-4 rounded-xl shadow border">Đang tải dữ liệu...</p>
-      </div>
-    </div>
-
-  </div>
-
-  <script>
     // ==========================================
-    // 1. CẤU HÌNH API (THAY LINK CỦA BẠN VÀO ĐÂY)
+    // LOGIC CAMERA QUÉT QR
     // ==========================================
-    const API_URL = "https://script.google.com/macros/s/AKfycbwRKWYPaOBl1Oto1EEB2WOFvCu5OhvSK0pTFsDO7tZCMrvks6sQLTsYla_G58TLdZXZhw/exec"; // BẮT BUỘC THAY LINK TỪ GOOGLE SCRIPT VÀO ĐÂY
-    const sessionId = sessionStorage.getItem('sessionId') || "DEV_SESSION_123"; // Có session ảo để bạn test trên máy tính nếu cần
-
-    // Biến toàn cục cho Camera
-    let video = document.getElementById("video");
-    let canvasElement = document.getElementById("canvas");
-    let canvas = canvasElement.getContext("2d", { willReadFrequently: true });
-    let scanStream = null;
-    let scanning = false;
-
-    window.onload = () => {
-      if(!sessionId) {
-        alert("Hết phiên đăng nhập. Vui lòng đăng nhập lại!");
-        // Redirect về trang đăng nhập của bạn (nếu có)
-        return;
+    const html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+      { facingMode: "environment" }, 
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      (decodedText) => {
+        html5QrCode.pause(true); // Tạm dừng camera sau khi quét trúng
+        handleDiemDanh(decodedText);
       }
-      loadHistory();
-    };
+    ).catch(err => {
+      document.getElementById('result').classList.remove('hidden');
+      document.getElementById('result').innerText = "❌ Không thể mở Camera. Hãy đảm bảo bạn đã cấp quyền truy cập!";
+      document.getElementById('result').className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
+    });
 
-    // ==========================================
-    // 2. HÀM GỌI API (THAY THẾ CHO GOOGLE.SCRIPT.RUN)
-    // ==========================================
-    async function callAPI(action, data = {}) {
-      const payload = { action: action, sessionId: sessionId, ...data };
+    async function handleDiemDanh(qrData) {
+      const resBox = document.getElementById('result');
+      resBox.classList.remove('hidden');
+      resBox.innerText = "⏳ Đang xử lý điểm danh...";
+      resBox.className = "p-4 bg-blue-100 text-blue-800 rounded-xl shadow-sm text-center font-bold text-sm border border-blue-200 mt-4";
+
       try {
         const response = await fetch(API_URL, {
-          method: "POST",
-          body: JSON.stringify(payload)
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'diemDanhTNV', sessionId: sessionId, qrCode: qrData })
         });
-        return await response.json();
-      } catch (e) {
-        console.error("API Error:", e);
-        return { success: false, error: "Lỗi kết nối máy chủ. Vui lòng kiểm tra lại mạng!" };
-      }
-    }
-
-    // ==========================================
-    // 3. GIAO DIỆN (UI)
-    // ==========================================
-    function showResult(success, message) {
-      const box = document.getElementById('resultBox');
-      box.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800', 'bg-blue-100', 'text-blue-800');
-      box.classList.add(success ? 'bg-green-100' : 'bg-red-100', success ? 'text-green-800' : 'text-red-800');
-      box.innerHTML = message;
-    }
-
-    function showProcessing(message) {
-      const box = document.getElementById('resultBox');
-      box.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
-      box.classList.add('bg-blue-100', 'text-blue-800');
-      box.innerHTML = message;
-    }
-
-    // ==========================================
-    // 4. MODULE CAMERA & QUÉT MÃ (jsQR)
-    // ==========================================
-    function startScanner() {
-      document.getElementById('resultBox').classList.add('hidden');
-      document.getElementById('btnScan').classList.add('hidden');
-      document.getElementById('btnClose').classList.remove('hidden');
-      document.getElementById('reader-container').classList.remove('hidden');
-      document.getElementById('fallback-container').classList.add('hidden');
-
-      // Xin quyền mở camera sau
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
-        scanStream = stream;
-        video.srcObject = stream;
-        video.setAttribute("playsinline", true);
-        video.play();
-        scanning = true;
-        requestAnimationFrame(tick);
-      }).catch(function(err) {
-        // NẾU BỊ CHẶN: Dừng video, hiện khung tải ảnh
-        console.error("Camera error:", err);
-        stopScanner();
-        document.getElementById('btnScan').classList.add('hidden');
-        document.getElementById('fallback-container').classList.remove('hidden');
-      });
-    }
-
-    function tick() {
-      if (!scanning) return;
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvasElement.height = video.videoHeight;
-        canvasElement.width = video.videoWidth;
-        canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+        const res = await response.json();
         
-        let imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-        let code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
-        
-        if (code) {
-          scanning = false;
-          stopScanner();
-          processScanSuccess(code.data);
-          return;
+        if (res.success) {
+          resBox.innerText = "✅ " + res.message;
+          resBox.className = "p-4 bg-green-100 text-green-800 rounded-xl shadow-sm text-center font-bold text-sm border border-green-200 mt-4";
+          
+          // Tự động tải lại danh sách lịch sử điểm danh sau khi quét thành công
+          loadHistory(); 
+        } else {
+          resBox.innerText = "❌ " + res.error;
+          resBox.className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
         }
-      }
-      requestAnimationFrame(tick);
-    }
+        
+        // Tự động mở quét lại sau 3.5 giây
+        setTimeout(() => {
+          resBox.classList.add('hidden');
+          html5QrCode.resume();
+        }, 3500); 
 
-    function stopScanner() {
-      scanning = false;
-      if (scanStream) {
-        scanStream.getTracks().forEach(track => track.stop());
-        scanStream = null;
-      }
-      document.getElementById('reader-container').classList.add('hidden');
-      document.getElementById('btnClose').classList.add('hidden');
-      document.getElementById('btnScan').classList.remove('hidden');
-    }
-
-    // Dự phòng: Quét từ ảnh tải lên
-    function scanImage(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      showProcessing('⏳ Đang phân tích ảnh mã QR...');
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          canvasElement.width = img.width;
-          canvasElement.height = img.height;
-          canvas.drawImage(img, 0, 0, canvasElement.width, canvasElement.height);
-          
-          let imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-          let code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
-          
-          if (code) {
-             processScanSuccess(code.data);
-          } else {
-             showResult(false, "❌ KHÔNG TÌM THẤY MÃ QR. Hãy đảm bảo ảnh chụp rõ nét.");
-          }
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    // ==========================================
-    // 5. XỬ LÝ GPS VÀ GỬI LÊN MÁY CHỦ (BACKEND)
-    // ==========================================
-    async function processScanSuccess(decodedText) {
-      document.getElementById('btnScan').classList.add('hidden');
-      document.getElementById('fallback-container').classList.add('hidden');
-      
-      showProcessing("✅ Đã đọc mã QR. Đang lấy vị trí GPS...");
-
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            
-            showProcessing("⏳ Đang gửi dữ liệu lên hệ thống...");
-            
-            // GỌI API LÊN GOOGLE SCRIPT
-            const res = await callAPI("diemDanhTNV", { 
-              qrToken: decodedText, 
-              lat: lat, 
-              lng: lng 
-            });
-
-            document.getElementById('btnScan').classList.remove('hidden');
-            if(res.success) {
-              showResult(true, "✅ ĐIỂM DANH THÀNH CÔNG!<br><span class='text-sm font-normal text-gray-700 mt-1 block'>Dữ liệu đã được ghi nhận vào hệ thống.</span>");
-              loadHistory(); 
-            } else {
-              showResult(false, "❌ LỖI: " + res.error);
-            }
-          },
-          (error) => {
-            showResult(false, "❌ Lỗi GPS: Vui lòng bật định vị (Location) trên điện thoại và cấp quyền cho trình duyệt!");
-            document.getElementById('btnScan').classList.remove('hidden');
-          },
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-        );
-      } else {
-        showResult(false, "❌ Trình duyệt của bạn không hỗ trợ định vị GPS!");
-        document.getElementById('btnScan').classList.remove('hidden');
+      } catch (e) {
+        resBox.innerText = "❌ Lỗi mạng. Vui lòng thử lại!";
+        resBox.className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
+        setTimeout(() => { resBox.classList.add('hidden'); html5QrCode.resume(); }, 3000);
       }
     }
 
     // ==========================================
-    // 6. TẢI LỊCH SỬ TỪ MÁY CHỦ
+    // LOGIC TẢI LỊCH SỬ ĐIỂM DANH
     // ==========================================
     async function loadHistory() {
-      const res = await callAPI("getLichSuDiemDanhTNV");
+      const list = document.getElementById('listHistory');
+      list.innerHTML = '<p class="text-center text-gray-500 bg-white p-4 rounded-xl shadow-sm text-sm border italic">Đang tải lịch sử...</p>';
       
-      if(res.success) {
-        let html = '';
-        res.data.forEach(item => {
-          const colorLoai = item.loai === 'Vào ca' ? 'text-green-600' : 'text-orange-600';
-          html += `
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-sm flex justify-between items-center">
-              <div>
-                <p class="font-bold text-gray-800">${item.khuVuc}</p>
-                <p class="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                  ${item.thoiGian}
-                </p>
-              </div>
-              <span class="font-bold bg-gray-50 px-3 py-1 rounded-lg border ${colorLoai}">${item.loai}</span>
-            </div>`;
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'getLichSuDiemDanhTNV', sessionId: sessionId })
         });
-        document.getElementById('listHistory').innerHTML = html || '<p class="text-center text-gray-500 bg-white p-4 rounded-xl shadow border">Chưa có lượt điểm danh nào.</p>';
-      } else {
-        document.getElementById('listHistory').innerHTML = `<p class="text-center text-red-500 bg-white p-4 rounded-xl shadow border">Lỗi tải dữ liệu: ${res.error}</p>`;
-      }
-    }
-// ==========================================
-    // HÀM ĐĂNG XUẤT
-    // ==========================================
-    function logout() {
-      if(confirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?")) {
-        // Xóa mã phiên làm việc
-        sessionStorage.removeItem('sessionId'); 
-        // Đẩy người dùng về trang đăng nhập
-        window.location.href = 'index.html'; 
+        const res = await response.json();
+        
+        if(res.success) {
+          if(res.data.length === 0) {
+            list.innerHTML = '<p class="text-center text-gray-500 bg-white p-4 rounded-xl text-sm shadow-sm border italic">Chưa có lượt điểm danh nào.</p>';
+            return;
+          }
+
+          let html = '';
+          res.data.forEach(item => {
+            // Giả sử API trả về mảng object có cấu trúc { thoiGian: "...", caTruc: "...", diaDiem: "..." }
+            html += `
+              <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                  <h4 class="font-bold text-gray-800 text-sm">${item.caTruc || 'Điểm danh ca trực'}</h4>
+                  <p class="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                    📍 ${item.diaDiem || 'Khu vực hoạt động'}
+                  </p>
+                </div>
+                <div class="text-right">
+                  <span class="text-[10px] bg-green-100 text-green-800 font-bold px-2 py-1 rounded">Thành công</span>
+                  <p class="text-xs font-bold text-gray-600 mt-1">${item.thoiGian}</p>
+                </div>
+              </div>`;
+          });
+          list.innerHTML = html;
+        } else {
+          list.innerHTML = `<p class="text-center text-red-500 bg-white p-4 rounded-xl text-sm shadow-sm border italic">Lỗi: ${res.error}</p>`;
+        }
+      } catch (e) {
+        list.innerHTML = `<p class="text-center text-red-500 bg-white p-4 rounded-xl text-sm shadow border italic">Lỗi kết nối khi tải lịch sử.</p>`;
       }
     }
   </script>
