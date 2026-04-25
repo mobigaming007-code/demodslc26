@@ -80,36 +80,68 @@
       document.getElementById('result').className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
     });
 
+    // ==========================================
+    // LOGIC CAMERA & ĐỊNH VỊ GPS
+    // ==========================================
     async function handleDiemDanh(qrData) {
       const resBox = document.getElementById('result');
       resBox.classList.remove('hidden');
-      resBox.innerText = "⏳ Đang xử lý điểm danh...";
+      resBox.innerText = "📍 Đang lấy vị trí GPS hiện tại...";
       resBox.className = "p-4 bg-blue-100 text-blue-800 rounded-xl shadow-sm text-center font-bold text-sm border border-blue-200 mt-4";
+
+      // Kiểm tra xem trình duyệt có hỗ trợ GPS không
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          // Trùng hợp 1: Lấy GPS thành công -> Gửi data
+          async (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            sendDataToServer(qrData, lat, lng);
+          },
+          // Trùng hợp 2: Lỗi (TNV từ chối cấp quyền hoặc GPS đang tắt)
+          (error) => {
+            resBox.innerText = "❌ Không lấy được vị trí. Hãy bật Định vị (Location) trên điện thoại và tải lại trang!";
+            resBox.className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
+            setTimeout(() => html5QrCode.resume(), 3500);
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 } // Ép lấy tọa độ chính xác cao nhất
+        );
+      } else {
+        resBox.innerText = "❌ Trình duyệt/Điện thoại của bạn không hỗ trợ tính năng định vị!";
+        resBox.className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
+        setTimeout(() => html5QrCode.resume(), 3500);
+      }
+    }
+
+    // Gửi mã QR + GPS lên Google Script
+    async function sendDataToServer(qrData, lat, lng) {
+      const resBox = document.getElementById('result');
+      resBox.innerText = "⏳ Đang đối chiếu vị trí với máy chủ...";
 
       try {
         const response = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'diemDanhTNV', sessionId: sessionId, qrCode: qrData })
+          body: JSON.stringify({ 
+            action: 'diemDanhTNV', 
+            sessionId: sessionId, 
+            qrCode: qrData,
+            lat: lat,
+            lng: lng
+          })
         });
         const res = await response.json();
         
         if (res.success) {
           resBox.innerText = "✅ " + res.message;
           resBox.className = "p-4 bg-green-100 text-green-800 rounded-xl shadow-sm text-center font-bold text-sm border border-green-200 mt-4";
-          
-          // Tự động tải lại danh sách lịch sử điểm danh sau khi quét thành công
           loadHistory(); 
         } else {
           resBox.innerText = "❌ " + res.error;
           resBox.className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
         }
         
-        // Tự động mở quét lại sau 3.5 giây
-        setTimeout(() => {
-          resBox.classList.add('hidden');
-          html5QrCode.resume();
-        }, 3500); 
+        setTimeout(() => { resBox.classList.add('hidden'); html5QrCode.resume(); }, 4000); 
 
       } catch (e) {
         resBox.innerText = "❌ Lỗi mạng. Vui lòng thử lại!";
