@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trang Quản Trị - DSLC 2026</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { admin: '#1E3A8A' } } }
+    }
+  </script>
+  <style>
+    /* Ẩn thanh cuộn cho menu tab mượt hơn trên mobile */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 pb-10">
+
+  <nav class="bg-admin text-white shadow-md p-4 flex justify-between items-center fixed w-full top-0 z-50">
+    <h1 class="text-lg font-bold">Quản Trị DSLC 2026</h1>
+    <div class="text-sm font-medium">Bảng điều khiển</div>
+<button onclick="logout()" class="text-xs bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-lg font-bold transition shadow-sm border border-red-400">
+        Đăng xuất
+      </button>
+</div>
+  </nav>
+  
+  <div class="max-w-3xl mx-auto p-4 space-y-6 pt-20">
+
+    <div id="resultBox" class="hidden p-4 rounded-xl shadow-sm text-center font-bold sticky top-16 z-40"></div>
+
+    <div class="flex space-x-2 bg-white p-2 rounded-xl shadow-sm overflow-x-auto no-scrollbar">
+      <button onclick="switchTab('tab-tongquan')" id="btn-tab-tongquan" class="tab-btn py-2 px-4 rounded-lg font-bold bg-admin text-white text-sm whitespace-nowrap">Tổng quan</button>
+      <button onclick="switchTab('tab-minhchung')" id="btn-tab-minhchung" class="tab-btn py-2 px-4 rounded-lg font-bold text-gray-600 hover:bg-blue-50 text-sm whitespace-nowrap">Duyệt MC</button>
+      <button onclick="switchTab('tab-gcn')" id="btn-tab-gcn" class="tab-btn py-2 px-4 rounded-lg font-bold text-gray-600 hover:bg-blue-50 text-sm whitespace-nowrap">Duyệt GCN</button>
+      <button onclick="switchTab('tab-nogcn')" id="btn-tab-nogcn" class="tab-btn py-2 px-4 rounded-lg font-bold text-gray-600 hover:bg-blue-50 text-sm whitespace-nowrap">Nợ Link GCN</button>
+      <button onclick="switchTab('tab-lsmc')" id="btn-tab-lsmc" class="tab-btn py-2 px-4 rounded-lg font-bold text-gray-600 hover:bg-blue-50 text-sm whitespace-nowrap">Lịch sử MC</button>
+    </div>
+
+    <div id="tab-tongquan" class="tab-content block">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500 text-center">
+          <p class="text-xs text-gray-500 font-bold uppercase">MC Chờ duyệt</p>
+          <p id="statMC" class="text-3xl font-extrabold text-admin mt-1">--</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-purple-500 text-center">
+          <p class="text-xs text-gray-500 font-bold uppercase">GCN Chờ cấp</p>
+          <p id="statGCN" class="text-3xl font-extrabold text-purple-700 mt-1">--</p>
+        </div>
+      </div>
+      <button onclick="loadDashboard()" class="w-full mt-4 bg-gray-200 text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-300 transition">Làm mới dữ liệu Tổng quan</button>
+    </div>
+
+    <div id="tab-minhchung" class="tab-content hidden space-y-4">
+      <h2 class="font-bold text-lg text-admin border-b pb-2 flex justify-between">
+        Minh chứng chờ duyệt <button onclick="loadDanhSachMC()" class="text-xs text-blue-600 underline font-normal">Tải lại</button>
+      </h2>
+      <div id="listMC" class="space-y-4"><p class="text-center text-gray-500 bg-white p-4 rounded-xl border italic">Đang tải...</p></div>
+    </div>
+
+    <div id="tab-gcn" class="tab-content hidden space-y-4">
+      <h2 class="font-bold text-lg text-admin border-b pb-2 flex justify-between">
+        Yêu cầu cấp GCN <button onclick="loadDanhSachGCN()" class="text-xs text-blue-600 underline font-normal">Tải lại</button>
+      </h2>
+      <div id="listGCN" class="space-y-4"><p class="text-center text-gray-500 bg-white p-4 rounded-xl border italic">Đang tải...</p></div>
+    </div>
+
+    <div id="tab-nogcn" class="tab-content hidden space-y-4">
+      <h2 class="font-bold text-lg text-admin border-b pb-2 flex justify-between">
+        Hồ sơ Nợ Link / Hẹn trả <button onclick="loadDanhSachNoGCN()" class="text-xs text-blue-600 underline font-normal">Tải lại</button>
+      </h2>
+      <p class="text-xs text-gray-600 mb-2">Dành cho các hồ sơ đã duyệt nhưng chưa có link GCN gốc.</p>
+      <div id="listNoGCN" class="space-y-4"><p class="text-center text-gray-500 bg-white p-4 rounded-xl border italic">Hãy bấm Tải lại để lấy dữ liệu</p></div>
+    </div>
+
+    <div id="tab-lsmc" class="tab-content hidden space-y-4">
+      <h2 class="font-bold text-lg text-admin border-b pb-2 flex justify-between">
+        Lịch sử duyệt Minh chứng <button onclick="loadLichSuMC()" class="text-xs text-blue-600 underline font-normal">Tải lại</button>
+      </h2>
+      <div id="listLSMC" class="space-y-4"><p class="text-center text-gray-500 bg-white p-4 rounded-xl border italic">Hãy bấm Tải lại để xem lịch sử (Lấy 50 MC gần nhất)</p></div>
+    </div>
+
+  </div>
+
+  <script>
+    // ==========================================
+    // CẤU HÌNH API
+    // ==========================================
+    const API_URL = "DÁN_LINK_WEB_APP_EXEC_CỦA_BẠN_VÀO_ĐÂY"; 
+    const sessionId = sessionStorage.getItem('sessionId');
+
+    window.onload = () => {
+      if(!sessionId) return alert("Bạn chưa đăng nhập!");
+      loadDashboard();
+      loadDanhSachMC();
+      loadDanhSachGCN();
+    };
+
+    async function callAPI(action, data = {}) {
+      const payload = { action: action, sessionId: sessionId, ...data };
+      try {
+        const response = await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
+        return await response.json();
+      } catch (e) {
+        return { success: false, error: "Lỗi kết nối máy chủ!" };
+      }
+    }
+
+    function showResult(success, message) {
+      const box = document.getElementById('resultBox');
+      box.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+      box.classList.add(success ? 'bg-green-100' : 'bg-red-100', success ? 'text-green-800' : 'text-red-800');
+      box.innerHTML = message;
+      setTimeout(() => box.classList.add('hidden'), 4000);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('bg-admin', 'text-white');
+        el.classList.add('text-gray-600', 'hover:bg-blue-50');
+      });
+      document.getElementById('btn-' + tabId).classList.remove('text-gray-600', 'hover:bg-blue-50');
+      document.getElementById('btn-' + tabId).classList.add('bg-admin', 'text-white');
+      
+      // Auto load data khi chuyển sang tab đặc biệt để đỡ lag khi mới vào trang
+      if(tabId === 'tab-nogcn' && document.getElementById('listNoGCN').innerHTML.includes('Hãy bấm')) loadDanhSachNoGCN();
+      if(tabId === 'tab-lsmc' && document.getElementById('listLSMC').innerHTML.includes('Hãy bấm')) loadLichSuMC();
+    }
+
+    // ==========================================
+    // TẢI DỮ LIỆU TỔNG QUAN
+    // ==========================================
+    async function loadDashboard() {
+      const res = await callAPI("getAdminDashboard");
+      if(res.success) {
+        document.getElementById('statMC').innerText = res.data.mcChoDuyet || 0;
+        document.getElementById('statGCN').innerText = res.data.gcnChoDuyet || 0;
+      }
+    }
+
+    // ==========================================
+    // XỬ LÝ DUYỆT MINH CHỨNG
+    // ==========================================
+    async function loadDanhSachMC() {
+      document.getElementById('listMC').innerHTML = '<p class="text-center py-4 italic">Đang tải dữ liệu...</p>';
+      const res = await callAPI("getDanhSachMinhChungChoXet");
+      if(res.success) {
+        let html = '';
+        res.data.forEach(item => {
+          html += `
+            <div class="bg-white p-4 rounded-xl shadow border border-gray-200" id="mc-${item.maMC}">
+              <div class="flex justify-between items-start mb-2">
+                <div>
+                  <p class="font-bold text-gray-800">${item.hoTenTNV} <span class="text-xs font-normal text-gray-500">(${item.maTNV})</span></p>
+                  <p class="text-xs text-blue-600 font-bold bg-blue-50 inline-block px-2 py-0.5 rounded mt-1">${item.hangMuc}</p>
+                </div>
+                <p class="text-[10px] text-gray-400">${item.thoiGian}</p>
+              </div>
+              <p class="text-sm text-gray-600 bg-gray-50 p-2 rounded italic mb-2">${item.moTa}</p>
+              <div class="mb-3">${item.anhUrl ? `<a href="${item.anhUrl}" target="_blank" class="text-sm text-blue-600 underline font-bold">🖼 Xem ảnh đính kèm</a>` : '<span class="text-xs text-red-500">Không có ảnh</span>'}</div>
+              <div class="flex space-x-2 border-t pt-3">
+                <button onclick="duyetMC('${item.maMC}', 'Đồng ý')" class="flex-1 bg-green-600 text-white font-bold py-2 rounded shadow hover:bg-green-700">✅ DUYỆT</button>
+                <button onclick="duyetMC('${item.maMC}', 'Từ chối')" class="flex-1 bg-red-100 text-red-600 font-bold py-2 rounded hover:bg-red-200">❌ TỪ CHỐI</button>
+              </div>
+            </div>`;
+        });
+        document.getElementById('listMC').innerHTML = html || '<p class="text-center text-gray-500 py-4 italic">Không có minh chứng nào cần duyệt.</p>';
+      }
+    }
+
+    async function duyetMC(maMC, hanhDong) {
+      let soBuoi = 0, ghiChu = "";
+      if(hanhDong === 'Đồng ý') {
+        let inputBuoi = prompt("Cộng số buổi (Mặc định 1):", "1");
+        if(inputBuoi === null) return;
+        soBuoi = parseFloat(inputBuoi) || 0;
+        ghiChu = prompt("Ghi chú (Tùy chọn):", "");
+        if(ghiChu === null) return;
+      } else {
+        ghiChu = prompt("Lý do từ chối:", "Ảnh không hợp lệ");
+        if(ghiChu === null) return;
+      }
+
+      document.getElementById('mc-' + maMC).style.opacity = '0.5';
+      const res = await callAPI("adminDuyetMinhChung", { maMC: maMC, hanhDong: hanhDong, soBuoi: soBuoi, ghiChu: ghiChu });
+      if(res.success) {
+        showResult(true, "✅ Xử lý thành công!");
+        document.getElementById('mc-' + maMC).remove();
+        loadDashboard();
+      } else {
+        showResult(false, "❌ Lỗi: " + res.error);
+        document.getElementById('mc-' + maMC).style.opacity = '1';
+      }
+    }
+
+    // ==========================================
+    // XỬ LÝ DUYỆT YÊU CẦU GCN
+    // ==========================================
+    async function loadDanhSachGCN() {
+      document.getElementById('listGCN').innerHTML = '<p class="text-center py-4 italic">Đang tải...</p>';
+      const res = await callAPI("getDanhSachYeuCauGCN");
+      if(res.success) {
+        let html = '';
+        res.data.forEach(item => {
+          html += `
+            <div class="bg-white p-4 rounded-xl shadow border border-gray-200" id="gcn-${item.maYeuCau}">
+              <div class="mb-2">
+                <p class="font-bold text-gray-800">${item.hoTenTNV} <span class="text-xs font-normal text-gray-500">(${item.maTNV})</span></p>
+                <p class="text-sm font-bold text-purple-700 bg-purple-50 inline-block px-2 py-1 rounded mt-1 border border-purple-100">Cấp: ${item.loai}</p>
+              </div>
+              <p class="text-xs text-gray-500 mb-3 border-b pb-2">📅 Gửi lúc: ${item.ngayGui}</p>
+              <div class="grid grid-cols-3 gap-2">
+                <button onclick="duyetGCN('${item.maYeuCau}', 'Hoàn thành')" class="bg-green-600 text-white font-bold py-2 rounded text-xs shadow hover:bg-green-700">✅ CẤP LINK</button>
+                <button onclick="duyetGCN('${item.maYeuCau}', 'Hẹn ngày trả')" class="bg-yellow-500 text-white font-bold py-2 rounded text-xs shadow hover:bg-yellow-600">⏳ HẸN TRẢ</button>
+                <button onclick="duyetGCN('${item.maYeuCau}', 'Từ chối')" class="bg-red-100 text-red-600 font-bold py-2 rounded text-xs hover:bg-red-200">❌ TỪ CHỐI</button>
+              </div>
+            </div>`;
+        });
+        document.getElementById('listGCN').innerHTML = html || '<p class="text-center text-gray-500 py-4 italic">Không có yêu cầu GCN nào.</p>';
+      }
+    }
+
+    async function duyetGCN(maYeuCau, hanhDong) {
+      let linkGCN = "", ngayHenTra = "";
+      if (hanhDong === 'Hoàn thành') {
+        linkGCN = prompt("Nhập link Google Drive của GCN:", "");
+        if (linkGCN === null || linkGCN.trim() === "") return alert("Bắt buộc phải nhập link!");
+      } else if (hanhDong === 'Hẹn ngày trả') {
+        ngayHenTra = prompt("Ngày sẽ cấp (VD: 15/07/2026):", "");
+        if (ngayHenTra === null || ngayHenTra.trim() === "") return;
+      } else if (hanhDong === 'Từ chối') {
+        if (!confirm("TỪ CHỐI yêu cầu này?")) return;
+      }
+
+      document.getElementById('gcn-' + maYeuCau).style.opacity = '0.5';
+      const res = await callAPI("adminCapGCN", { maYeuCau: maYeuCau, hanhDong: hanhDong, linkGCN: linkGCN, ngayHenTra: ngayHenTra });
+      if(res.success) {
+        showResult(true, `✅ Đã xử lý yêu cầu!`);
+        document.getElementById('gcn-' + maYeuCau).remove();
+        loadDashboard();
+      } else showResult(false, "❌ Lỗi: " + res.error);
+    }
+
+    // ==========================================
+    // XỬ LÝ NỢ LINK GCN
+    // ==========================================
+    async function loadDanhSachNoGCN() {
+      document.getElementById('listNoGCN').innerHTML = '<p class="text-center py-4 italic">Đang tải...</p>';
+      const res = await callAPI("getDanhSachNoGCN");
+      if(res.success) {
+        let html = '';
+        res.data.forEach(item => {
+          html += `
+            <div class="bg-white p-4 rounded-xl shadow border border-yellow-200 bg-yellow-50" id="no-${item.maYeuCau}">
+              <p class="font-bold text-gray-800">${item.hoTenTNV} - <span class="text-purple-700">${item.loai}</span></p>
+              <p class="text-xs text-gray-500 mt-1 mb-2">Trạng thái: ${item.trangThai}</p>
+              <button onclick="capNhatLinkGCN('${item.maYeuCau}')" class="w-full bg-blue-600 text-white font-bold py-2 rounded text-sm shadow hover:bg-blue-700">🔗 BỔ SUNG LINK GCN</button>
+            </div>`;
+        });
+        document.getElementById('listNoGCN').innerHTML = html || '<p class="text-center text-gray-500 py-4 italic">Không có hồ sơ nào nợ Link.</p>';
+      }
+    }
+
+    async function capNhatLinkGCN(maYeuCau) {
+      let linkGCN = prompt("Dán đường link GCN vào đây:", "");
+      if (linkGCN === null || linkGCN.trim() === "") return;
+
+      document.getElementById('no-' + maYeuCau).style.opacity = '0.5';
+      const res = await callAPI("adminCapNhatLinkGCN", { maYeuCau: maYeuCau, linkGCN: linkGCN });
+      if(res.success) {
+        showResult(true, "✅ Cập nhật Link GCN thành công!");
+        document.getElementById('no-' + maYeuCau).remove();
+      } else {
+        showResult(false, "❌ Lỗi: " + res.error);
+        document.getElementById('no-' + maYeuCau).style.opacity = '1';
+      }
+    }
+
+    // ==========================================
+    // XỬ LÝ LỊCH SỬ MC & SỬA BUỔI
+    // ==========================================
+    async function loadLichSuMC() {
+      document.getElementById('listLSMC').innerHTML = '<p class="text-center py-4 italic">Đang tải...</p>';
+      const res = await callAPI("getLichSuMinhChung");
+      if(res.success) {
+        let html = '';
+        res.data.forEach(item => {
+          let badge = item.trangThai === 'Đã duyệt' ? 'text-green-600' : 'text-red-600';
+          html += `
+            <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center text-sm" id="lsmc-${item.maMC}">
+              <div>
+                <p class="font-bold text-gray-800">${item.hoTenTNV} <span class="text-xs text-gray-500">(${item.hangMuc})</span></p>
+                <p class="text-xs font-bold ${badge} mt-1">${item.trangThai} ${item.soBuoi > 0 ? `(+${item.soBuoi} buổi)` : ''}</p>
+              </div>
+              <button onclick="suaBuoiMC('${item.maMC}', '${item.soBuoi}')" class="bg-gray-100 text-gray-700 px-3 py-1 text-xs font-bold rounded border hover:bg-gray-200">Sửa số buổi</button>
+            </div>`;
+        });
+        document.getElementById('listLSMC').innerHTML = html || '<p class="text-center text-gray-500 py-4 italic">Chưa có lịch sử.</p>';
+      }
+    }
+
+    async function suaBuoiMC(maMC, buoiCu) {
+      let soBuoiMoi = prompt(`Minh chứng này đang được cộng ${buoiCu} buổi.\nNhập số buổi MỚI (nếu muốn trừ đi thì nhập số nhỏ hơn hoặc bằng 0):`, buoiCu);
+      if(soBuoiMoi === null || soBuoiMoi === buoiCu) return;
+
+      document.getElementById('lsmc-' + maMC).style.opacity = '0.5';
+      const res = await callAPI("adminSuaBuoiMC", { maMC: maMC, soBuoiMoi: parseFloat(soBuoiMoi) || 0 });
+      if(res.success) {
+        showResult(true, "✅ Đã cập nhật lại số buổi!");
+        loadLichSuMC(); // Reload lại danh sách lịch sử
+      } else {
+        showResult(false, "❌ Lỗi: " + res.error);
+        document.getElementById('lsmc-' + maMC).style.opacity = '1';
+      }
+    }
+// ==========================================
+    // HÀM ĐĂNG XUẤT
+    // ==========================================
+    function logout() {
+      if(confirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?")) {
+        // Xóa mã phiên làm việc
+        sessionStorage.removeItem('sessionId'); 
+        // Đẩy người dùng về trang đăng nhập
+        window.location.href = 'index.html'; 
+      }
+    }
+  </script>
+</body>
+</html>

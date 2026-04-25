@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng ký GCN - DSLC 2026</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: { colors: { greenDSLC: '#2E7D32', yellowDSLC: '#F9A825' }, fontFamily: { sans: ['Roboto', 'sans-serif'] } }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-100 text-gray-800 pb-10">
+
+  <nav class="bg-greenDSLC text-white shadow-md p-4 flex justify-between items-center fixed w-full top-0 z-50">
+    <h1 class="text-lg font-bold">Đổi Sách Lấy Cây 2026</h1>
+    <div class="text-sm font-medium">Nhận GCN</div>
+<button onclick="logout()" class="text-xs bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-lg font-bold transition shadow-sm border border-red-400">
+        Đăng xuất
+      </button>
+</div>
+  </nav>
+  
+  <div class="max-w-md mx-auto p-4 space-y-6 pt-20">
+
+    <div id="resultBox" class="hidden p-4 rounded-xl shadow-sm text-center font-bold sticky top-16 z-40 transition-all"></div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-green-100 p-6 text-center relative overflow-hidden">
+      <div class="absolute -right-4 -top-4 opacity-10">
+        <svg width="100" height="100" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>
+      </div>
+      
+      <h2 class="text-gray-500 font-bold text-sm uppercase tracking-wide">Tổng số buổi tích lũy</h2>
+      <p id="txtTongBuoi" class="text-5xl font-extrabold text-greenDSLC mt-2 mb-1">--</p>
+      <p id="txtDotHienTai" class="text-xs text-blue-600 bg-blue-50 inline-block px-3 py-1.5 rounded-full border border-blue-100 mt-2 font-medium">⏳ Đang tải đợt xét duyệt...</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+      <h2 class="font-bold text-lg text-greenDSLC border-b pb-2 mb-4">Các mức Chứng nhận hợp lệ</h2>
+      
+      <div id="listGCN" class="space-y-3 mb-4">
+        <div class="animate-pulse flex space-x-4 p-3 border rounded-lg">
+          <div class="rounded-full bg-slate-200 h-5 w-5"></div>
+          <div class="flex-1 space-y-2 py-1">
+            <div class="h-3 bg-slate-200 rounded w-3/4"></div>
+            <div class="h-2 bg-slate-200 rounded w-1/2"></div>
+          </div>
+        </div>
+      </div>
+      
+      <button id="btnSubmit" onclick="submitGCN()" class="hidden w-full bg-greenDSLC text-white font-bold py-4 rounded-lg shadow hover:bg-green-800 transition flex justify-center items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+        GỬI YÊU CẦU CẤP GCN
+      </button>
+    </div>
+
+    <div>
+      <h3 class="font-bold text-lg mb-3 flex justify-between items-center">
+        Lịch sử yêu cầu
+        <button onclick="loadData()" class="text-xs text-blue-600 underline font-normal bg-blue-50 px-2 py-1 rounded">Tải lại</button>
+      </h3>
+      <div id="listHistory" class="space-y-3">
+        <p class="text-center text-gray-500 bg-white p-4 rounded-xl shadow-sm border italic">Đang tải lịch sử...</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. CẤU HÌNH API
+    // ==========================================
+    const API_URL = "DÁN_LINK_WEB_APP_EXEC_CỦA_BẠN_VÀO_ĐÂY";
+    const sessionId = sessionStorage.getItem('sessionId');
+    let currentDot = null; 
+
+    window.onload = () => {
+      if(!sessionId) return alert("Hết phiên đăng nhập. Vui lòng đăng nhập lại!");
+      loadData();
+    };
+
+    async function callAPI(action, data = {}) {
+      const payload = { action: action, sessionId: sessionId, ...data };
+      try {
+        const response = await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
+        return await response.json();
+      } catch (e) {
+        return { success: false, error: "Lỗi kết nối máy chủ!" };
+      }
+    }
+
+    function showResult(success, message) {
+      const box = document.getElementById('resultBox');
+      box.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+      box.classList.add(success ? 'bg-green-100' : 'bg-red-100', success ? 'text-green-800' : 'text-red-800');
+      box.innerHTML = message;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => box.classList.add('hidden'), 5000); // Tự ẩn sau 5s
+    }
+
+    // ==========================================
+    // 2. TẢI DỮ LIỆU TỔNG HỢP
+    // ==========================================
+    async function loadData() {
+      const res = await callAPI("getGCNData");
+      
+      if (!res.success) {
+        document.getElementById('txtDotHienTai').innerText = "Lỗi kết nối: " + res.error;
+        document.getElementById('txtDotHienTai').className = "text-xs text-red-600 bg-red-50 inline-block px-3 py-1 rounded-full border border-red-100 mt-2";
+        return;
+      }
+
+      const data = res.data;
+      
+      // A. Cập nhật Số buổi & Đợt
+      document.getElementById('txtTongBuoi').innerText = data.tongBuoi;
+      if (data.dot) {
+        currentDot = data.dot.soDot;
+        document.getElementById('txtDotHienTai').innerText = `🔥 Đợt xét: ${data.dot.tenDot} (Hạn: ${data.dot.ketThuc})`;
+        document.getElementById('txtDotHienTai').className = "text-xs text-green-700 bg-green-50 inline-block px-3 py-1.5 rounded-full border border-green-200 mt-2 font-bold";
+        document.getElementById('btnSubmit').classList.remove('hidden');
+      } else {
+        document.getElementById('txtDotHienTai').innerText = "⛔ Hiện tại chưa có đợt xét duyệt GCN nào mở.";
+        document.getElementById('txtDotHienTai').className = "text-xs text-red-600 bg-red-50 inline-block px-3 py-1.5 rounded-full border border-red-100 mt-2 font-medium";
+        document.getElementById('btnSubmit').classList.add('hidden');
+      }
+
+      // B. Render Danh sách Checkbox GCN
+      let htmlGCN = '';
+      if (!data.dot) {
+        htmlGCN = '<p class="text-center text-red-500 py-4 text-sm font-medium bg-red-50 rounded-lg">Hệ thống đang đóng. Vui lòng quay lại vào đợt sau.</p>';
+      } else {
+        data.danhSachGCN.forEach(gcn => {
+          if (gcn.duDieuKien) {
+            htmlGCN += `
+              <label class="flex items-start p-3 border-2 border-transparent rounded-xl cursor-pointer hover:bg-green-50 transition bg-white shadow-sm ring-1 ring-gray-200 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-200">
+                <div class="flex-shrink-0 mt-1">
+                  <input type="checkbox" name="gcnType" value="${gcn.ten}" class="w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500 cursor-pointer">
+                </div>
+                <div class="ml-3 w-full">
+                  <p class="font-bold text-gray-800 text-sm flex justify-between items-center">
+                    ${gcn.ten} 
+                    <span class="font-bold text-[10px] text-green-700 bg-green-100 px-2 py-1 rounded-full uppercase tracking-wider">Đủ điều kiện</span>
+                  </p>
+                  <p class="text-xs text-gray-500 mt-1">Yêu cầu tối thiểu: ${gcn.minBuoi} buổi</p>
+                </div>
+              </label>`;
+          } else {
+            htmlGCN += `
+              <div class="flex items-start p-3 border rounded-xl bg-gray-50 opacity-60 grayscale filter">
+                <div class="flex-shrink-0 mt-1">
+                  <input type="checkbox" disabled class="w-5 h-5 border-gray-300 rounded cursor-not-allowed">
+                </div>
+                <div class="ml-3 w-full">
+                  <p class="font-bold text-gray-500 text-sm">${gcn.ten}</p>
+                  <div class="flex justify-between items-center mt-1">
+                    <p class="text-xs text-gray-500">Yêu cầu: ${gcn.minBuoi} buổi</p>
+                    <p class="text-xs font-bold text-red-500">Thiếu ${gcn.minBuoi - data.tongBuoi} buổi</p>
+                  </div>
+                </div>
+              </div>`;
+          }
+        });
+      }
+      document.getElementById('listGCN').innerHTML = htmlGCN;
+
+      // C. Render Lịch sử Yêu cầu
+      renderHistory(data.history);
+    }
+
+    function renderHistory(history) {
+      let htmlHistory = '';
+      history.forEach(item => {
+        let badgeStyle = 'bg-gray-100 text-gray-800 border-gray-200';
+        let icon = '⏳';
+        
+        if(item.trangThai === 'Hoàn thành') { badgeStyle = 'bg-green-100 text-green-800 border-green-300'; icon = '✅'; }
+        if(item.trangThai === 'Từ chối') { badgeStyle = 'bg-red-100 text-red-800 border-red-300'; icon = '❌'; }
+        if(item.trangThai === 'Hẹn ngày trả') { badgeStyle = 'bg-yellow-100 text-yellow-800 border-yellow-300'; icon = '📅'; }
+
+        htmlHistory += `
+          <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 relative overflow-hidden">
+            <div class="absolute left-0 top-0 bottom-0 w-1 ${item.trangThai === 'Hoàn thành' ? 'bg-green-500' : (item.trangThai === 'Từ chối' ? 'bg-red-500' : 'bg-yellow-500')}"></div>
+            
+            <div class="pl-2">
+              <div class="flex justify-between items-start mb-2">
+                <span class="font-black text-admin text-base uppercase tracking-tight">${item.loai}</span>
+                <span class="px-2 py-1 rounded text-[10px] font-bold border ${badgeStyle} flex items-center gap-1">${icon} ${item.trangThai}</span>
+              </div>
+              <p class="text-xs text-gray-500">Đăng ký lúc: ${item.ngayGui} | Đợt: ${item.dot}</p>
+              
+              ${item.ngayHenTra && item.trangThai === 'Hẹn ngày trả' ? `
+                <div class="mt-3 text-xs font-bold text-yellow-800 bg-yellow-50 p-2.5 rounded-lg border border-yellow-100 flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                  Ngày hẹn trả GCN: ${item.ngayHenTra}
+                </div>` : ''}
+              
+              ${item.gcnUrl ? `
+                <div class="mt-4 pt-3 border-t border-gray-100">
+                  <a href="${item.gcnUrl}" target="_blank" class="w-full text-center block bg-admin text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-blue-900 transition shadow">
+                    📥 TẢI CHỨNG NHẬN CỦA BẠN
+                  </a>
+                </div>` : ''}
+            </div>
+          </div>`;
+      });
+      document.getElementById('listHistory').innerHTML = htmlHistory || '<p class="text-center text-gray-500 py-4 italic bg-white rounded-xl border border-gray-200">Bạn chưa có yêu cầu cấp GCN nào.</p>';
+    }
+
+    // ==========================================
+    // 3. GỬI YÊU CẦU CẤP GCN
+    // ==========================================
+    async function submitGCN() {
+      const checkboxes = document.querySelectorAll('input[name="gcnType"]:checked');
+      let selectedGCNs = [];
+      checkboxes.forEach((cb) => { selectedGCNs.push(cb.value); });
+
+      if (selectedGCNs.length === 0) {
+        return alert("Vui lòng tích chọn ít nhất một mức Giấy chứng nhận bạn muốn nhận!");
+      }
+
+      if (!currentDot) {
+        return alert("Hiện tại chưa có đợt xét GCN nào.");
+      }
+
+      // Hộp thoại xác nhận trước khi gửi
+      const confirmMsg = `Bạn đang yêu cầu cấp các GCN sau:\n- ${selectedGCNs.join('\n- ')}\n\nBạn có chắc chắn muốn gửi yêu cầu không?`;
+      if(!confirm(confirmMsg)) return;
+
+      const btn = document.getElementById('btnSubmit');
+      btn.innerHTML = '⏳ ĐANG XỬ LÝ...';
+      btn.disabled = true;
+      btn.classList.add('opacity-75');
+
+      const res = await callAPI("submitYeuCauGCN", {
+        dot: currentDot,
+        listLoaiGCN: selectedGCNs
+      });
+
+      btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg> GỬI YÊU CẦU CẤP GCN`;
+      btn.disabled = false;
+      btn.classList.remove('opacity-75');
+
+      if (res.success) {
+        showResult(true, "✅ Đã gửi yêu cầu thành công! Admin sẽ sớm xét duyệt cho bạn.");
+        checkboxes.forEach(cb => cb.checked = false); // Bỏ chọn sau khi gửi
+        loadData(); // Tải lại để hiện lịch sử mới
+      } else {
+        showResult(false, "❌ " + res.error);
+      }
+    }
+// ==========================================
+    // HÀM ĐĂNG XUẤT
+    // ==========================================
+    function logout() {
+      if(confirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?")) {
+        // Xóa mã phiên làm việc
+        sessionStorage.removeItem('sessionId'); 
+        // Đẩy người dùng về trang đăng nhập
+        window.location.href = 'index.html'; 
+      }
+    }
+  </script>
+</body>
+</html>
