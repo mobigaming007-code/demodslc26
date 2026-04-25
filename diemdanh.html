@@ -3,244 +3,166 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nhận Giấy Chứng Nhận - DSLC 2026</title>
+  <title>Điểm Danh - DSLC 2026</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style> body { font-family: 'Roboto', sans-serif; } </style>
 </head>
 <body class="bg-gray-100 pb-10">
 
   <nav class="bg-green-800 text-white p-4 shadow-md fixed w-full top-0 z-50 flex justify-between items-center">
-    <h1 class="font-bold text-lg text-white">DSLC 2026</h1>
+    <h1 class="font-bold text-lg">DSLC 2026</h1>
     <button onclick="logout()" class="text-xs bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg font-bold transition shadow">Đăng xuất</button>
   </nav>
 
   <div class="max-w-md mx-auto px-4 pt-20">
     <div class="flex space-x-1 bg-white p-1 rounded-xl shadow-sm border border-gray-100">
-      <a href="diemdanh.html" class="flex-1 text-center py-2.5 text-xs font-bold rounded-lg text-gray-500 hover:bg-gray-50 transition">Điểm danh</a>
+      <a href="diemdanh.html" class="flex-1 text-center py-2.5 text-xs font-bold rounded-lg bg-green-700 text-white shadow-sm">Điểm danh</a>
       <a href="minhchung.html" class="flex-1 text-center py-2.5 text-xs font-bold rounded-lg text-gray-500 hover:bg-gray-50 transition">Minh chứng</a>
-      <a href="gcn.html" class="flex-1 text-center py-2.5 text-xs font-bold rounded-lg bg-green-700 text-white shadow-sm">Nhận GCN</a>
+      <a href="gcn.html" class="flex-1 text-center py-2.5 text-xs font-bold rounded-lg text-gray-500 hover:bg-gray-50 transition">Nhận GCN</a>
     </div>
   </div>
 
-  <main class="max-w-md mx-auto p-4 mt-2 space-y-6">
-    <div id="resultBox" class="hidden p-4 rounded-xl shadow-sm text-center font-bold text-sm"></div>
-
-    <div class="bg-white rounded-3xl shadow-sm border border-green-100 p-6 text-center relative overflow-hidden">
-      <div class="absolute -right-4 -top-4 opacity-5">
-        <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>
-      </div>
-      <h2 class="text-gray-400 font-bold text-xs uppercase tracking-widest">Tổng số buổi tích lũy</h2>
-      <p id="txtTongBuoi" class="text-5xl font-black text-green-700 mt-2 mb-2">--</p>
-      <div id="txtDotHienTai" class="text-[11px] text-blue-600 bg-blue-50 inline-block px-3 py-1.5 rounded-full font-bold border border-blue-100">
-        ⏳ Đang tải thông tin đợt xét...
-      </div>
-    </div>
-
-    <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
-      <h2 class="font-bold text-lg text-green-800 border-b pb-2 mb-4 flex items-center gap-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        Đăng ký cấp GCN
-      </h2>
+  <main class="max-w-md mx-auto p-4 mt-2 space-y-5">
+    
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-center">
+      <h2 class="font-bold text-green-800 text-lg mb-2">Quét mã QR Điểm danh</h2>
+      <p class="text-xs text-gray-500 mb-4">Đưa camera vào sát mã QR do Trưởng ca cung cấp để ghi nhận.</p>
       
-      <div id="listGCN" class="space-y-3 mb-4">
-        <p class="text-sm text-center text-gray-400 italic py-4">Đang kiểm tra điều kiện của bạn...</p>
-      </div>
-      
-      <button id="btnSubmit" onclick="submitGCN()" class="hidden w-full bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-800 active:scale-95 transition-all">
-        GỬI YÊU CẦU CẤP GCN
-      </button>
+      <div id="reader" class="rounded-xl overflow-hidden shadow-inner bg-black w-full aspect-square"></div>
+      <div id="result" class="hidden p-4 rounded-xl shadow-sm text-center font-bold text-sm border mt-4"></div>
     </div>
-
+    
     <div>
-      <div class="flex justify-between items-end mb-3 px-1">
-        <h3 class="font-bold text-gray-800">Lịch sử yêu cầu</h3>
-        <button onclick="loadData()" class="text-[11px] text-blue-600 font-bold hover:underline uppercase tracking-tighter">Làm mới</button>
+      <div class="flex justify-between items-end mb-3">
+        <h3 class="font-bold text-gray-800">Lịch sử hôm nay</h3>
+        <button onclick="loadHistory()" class="text-xs text-blue-600 underline font-medium">Tải lại</button>
       </div>
-      
       <div id="listHistory" class="space-y-3">
-        <p class="text-center text-gray-400 bg-white p-6 rounded-xl shadow-sm text-sm border italic">Đang tải lịch sử...</p>
+        <p class="text-center text-gray-500 bg-white p-4 rounded-xl shadow-sm text-sm border italic">Đang tải dữ liệu...</p>
       </div>
     </div>
+
   </main>
 
   <script>
-    // ==========================================
-    // CẤU HÌNH API
-    // ==========================================
-    const API_URL = "https://script.google.com/macros/s/AKfycbxDW90QgSOG6BYEIdYtvD557b6yvxNIw0zz0DskWHKQEIhiwqgVDcW7p1TtuNJasr-ITg/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbxDW90QgSOG6BYEIdYtvD557b6yvxNIw0zz0DskWHKQEIhiwqgVDcW7p1TtuNJasr-ITg/exec";
     const sessionId = sessionStorage.getItem('sessionId');
-    let currentDot = null; 
 
+    // Chặn người dùng chưa đăng nhập
     if(!sessionId) window.location.href = 'index.html';
 
-    // Chạy tải dữ liệu khi trang web sẵn sàng
-    window.onload = loadData;
+    // Tự động tải lịch sử khi vừa vào trang
+    window.onload = loadHistory;
 
     function logout() {
-      if(confirm("Bạn muốn đăng xuất khỏi tài khoản này?")) {
+      if(confirm("Đăng xuất khỏi tài khoản?")) {
         sessionStorage.clear();
         window.location.href = 'index.html';
       }
     }
 
-    function showResult(success, msg) {
-      const box = document.getElementById('resultBox');
-      box.className = `p-4 rounded-xl text-center font-bold text-sm mb-4 ${success ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'}`;
-      box.innerText = msg;
-      box.classList.remove('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
     // ==========================================
-    // TẢI VÀ HIỂN THỊ DỮ LIỆU GCN
+    // LOGIC CAMERA QUÉT QR
     // ==========================================
-    async function loadData() {
-      try {
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'getGCNData', sessionId: sessionId })
-        });
-        const res = await response.json();
-        
-        if (res.success) {
-          const data = res.data;
-          
-          // 1. Hiển thị tổng số buổi
-          document.getElementById('txtTongBuoi').innerText = data.tongBuoi;
-          
-          // 2. Hiển thị thông tin đợt xét hiện tại
-          const dotBox = document.getElementById('txtDotHienTai');
-          if (data.dot) {
-            currentDot = data.dot.soDot;
-            dotBox.innerText = `Đợt: ${data.dot.tenDot} (Hạn: ${data.dot.ketThuc})`;
-            dotBox.className = "text-[11px] text-green-700 bg-green-50 inline-block px-3 py-1.5 rounded-full font-bold border border-green-200";
-            document.getElementById('btnSubmit').classList.remove('hidden');
-          } else {
-            dotBox.innerText = "⛔ Hiện tại chưa mở cổng đăng ký GCN";
-            dotBox.className = "text-[11px] text-red-600 bg-red-50 inline-block px-3 py-1.5 rounded-full font-bold border border-red-100";
-            document.getElementById('btnSubmit').classList.add('hidden');
-          }
-
-          // 3. Hiển thị danh sách các mức GCN
-          let htmlGCN = '';
-          if (!data.dot) {
-            htmlGCN = '<p class="text-center text-gray-400 py-3 text-xs italic">Cổng đăng ký hiện đang đóng. Vui lòng quay lại sau.</p>';
-          } else {
-            data.danhSachGCN.forEach(gcn => {
-              if (gcn.duDieuKien) {
-                htmlGCN += `
-                  <label class="flex items-start p-3 border-2 border-gray-100 rounded-xl cursor-pointer hover:bg-green-50 bg-white shadow-sm focus-within:border-green-500 transition-all">
-                    <input type="checkbox" name="gcnType" value="${gcn.ten}" class="mt-1 w-5 h-5 text-green-600 rounded cursor-pointer">
-                    <div class="ml-3 w-full">
-                      <p class="font-bold text-gray-800 text-sm flex justify-between items-center">
-                        ${gcn.ten} 
-                        <span class="font-bold text-[10px] text-green-700 bg-green-100 px-2 py-0.5 rounded-full uppercase tracking-tighter">Đủ điều kiện</span>
-                      </p>
-                      <p class="text-[11px] text-gray-500 mt-1">Mức yêu cầu: tối thiểu ${gcn.minBuoi} buổi</p>
-                    </div>
-                  </label>`;
-              } else {
-                htmlGCN += `
-                  <div class="flex items-start p-3 border rounded-xl bg-gray-50 opacity-60">
-                    <input type="checkbox" disabled class="mt-1 w-5 h-5 cursor-not-allowed">
-                    <div class="ml-3 w-full">
-                      <p class="font-bold text-gray-400 text-sm">${gcn.ten}</p>
-                      <p class="text-[11px] text-red-500 font-bold mt-1 tracking-tight">Cần thêm ${gcn.minBuoi - data.tongBuoi} buổi để đạt mức này</p>
-                    </div>
-                  </div>`;
-              }
-            });
-          }
-          document.getElementById('listGCN').innerHTML = htmlGCN;
-
-          // 4. Hiển thị lịch sử yêu cầu
-          renderHistory(data.history);
-        }
-      } catch (e) {
-        document.getElementById('listHistory').innerHTML = '<p class="text-red-500 text-sm text-center">❌ Không thể tải dữ liệu. Vui lòng thử lại.</p>';
+    const html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+      { facingMode: "environment" }, 
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      (decodedText) => {
+        html5QrCode.pause(true); // Tạm dừng camera sau khi quét trúng
+        handleDiemDanh(decodedText);
       }
-    }
+    ).catch(err => {
+      document.getElementById('result').classList.remove('hidden');
+      document.getElementById('result').innerText = "❌ Không thể mở Camera. Hãy đảm bảo bạn đã cấp quyền truy cập!";
+      document.getElementById('result').className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
+    });
 
-    function renderHistory(history) {
-      let htmlHistory = '';
-      if (!history || history.length === 0) {
-        htmlHistory = '<p class="text-center text-gray-400 bg-white p-6 rounded-xl shadow-sm text-sm border italic">Bạn chưa có yêu cầu cấp GCN nào.</p>';
-      } else {
-        history.forEach(item => {
-          let badgeClass = 'bg-yellow-100 text-yellow-800 border-yellow-200';
-          if(item.trangThai === 'Hoàn thành') badgeClass = 'bg-green-100 text-green-800 border-green-200';
-          if(item.trangThai === 'Từ chối') badgeClass = 'bg-red-100 text-red-800 border-red-200';
-          if(item.trangThai === 'Hẹn ngày trả') badgeClass = 'bg-blue-100 text-blue-800 border-blue-200';
-
-          htmlHistory += `
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 relative">
-              <div class="flex justify-between items-start mb-2">
-                <span class="font-bold text-gray-800 text-sm leading-tight">${item.loai}</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">${item.trangThai}</span>
-              </div>
-              <p class="text-[10px] text-gray-400">Đợt: ${item.dot} | Ngày gửi: ${item.ngayGui}</p>
-              
-              ${item.ngayHenTra ? `
-                <div class="mt-3 text-[11px] font-bold text-blue-800 bg-blue-50 p-2.5 rounded-lg border border-blue-100 flex items-center gap-2">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                  Ngày dự kiến trả: ${item.ngayHenTra}
-                </div>` : ''}
-              
-              ${item.gcnUrl ? `
-                <div class="mt-4 pt-3 border-t border-gray-100">
-                  <a href="${item.gcnUrl}" target="_blank" class="w-full text-center block bg-green-700 text-white px-4 py-2.5 rounded-lg text-xs font-bold hover:bg-green-800 transition shadow-sm">
-                    📥 TẢI GIẤY CHỨNG NHẬN
-                  </a>
-                </div>` : ''}
-            </div>`;
-        });
-      }
-      document.getElementById('listHistory').innerHTML = htmlHistory;
-    }
-
-    // ==========================================
-    // GỬI ĐĂNG KÝ GCN
-    // ==========================================
-    async function submitGCN() {
-      const checkedBoxes = document.querySelectorAll('input[name="gcnType"]:checked');
-      let selectedGCNs = Array.from(checkedBoxes).map(cb => cb.value);
-
-      if (selectedGCNs.length === 0) return alert("Vui lòng chọn ít nhất 1 loại Giấy chứng nhận!");
-      
-      const confirmMsg = `Bạn đang đăng ký các mức:\n- ${selectedGCNs.join('\n- ')}\n\nLưu ý: Bạn chỉ nên gửi yêu cầu 1 lần cho mỗi đợt. Bạn chắc chắn chứ?`;
-      if(!confirm(confirmMsg)) return;
-
-      const btn = document.getElementById('btnSubmit');
-      btn.innerText = '⏳ ĐANG XỬ LÝ...'; 
-      btn.disabled = true;
+    async function handleDiemDanh(qrData) {
+      const resBox = document.getElementById('result');
+      resBox.classList.remove('hidden');
+      resBox.innerText = "⏳ Đang xử lý điểm danh...";
+      resBox.className = "p-4 bg-blue-100 text-blue-800 rounded-xl shadow-sm text-center font-bold text-sm border border-blue-200 mt-4";
 
       try {
         const response = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ 
-            action: 'submitYeuCauGCN', 
-            sessionId: sessionId, 
-            dot: currentDot, 
-            listLoaiGCN: selectedGCNs 
-          })
+          body: JSON.stringify({ action: 'diemDanhTNV', sessionId: sessionId, qrCode: qrData })
         });
         const res = await response.json();
         
         if (res.success) {
-          showResult(true, "✅ Đã gửi yêu cầu thành công! Vui lòng đợi Ban điều hành xét duyệt.");
-          loadData(); // Tải lại để hiện lịch sử mới
+          resBox.innerText = "✅ " + res.message;
+          resBox.className = "p-4 bg-green-100 text-green-800 rounded-xl shadow-sm text-center font-bold text-sm border border-green-200 mt-4";
+          
+          // Tự động tải lại danh sách lịch sử điểm danh sau khi quét thành công
+          loadHistory(); 
         } else {
-          showResult(false, "❌ " + res.error);
+          resBox.innerText = "❌ " + res.error;
+          resBox.className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
+        }
+        
+        // Tự động mở quét lại sau 3.5 giây
+        setTimeout(() => {
+          resBox.classList.add('hidden');
+          html5QrCode.resume();
+        }, 3500); 
+
+      } catch (e) {
+        resBox.innerText = "❌ Lỗi mạng. Vui lòng thử lại!";
+        resBox.className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
+        setTimeout(() => { resBox.classList.add('hidden'); html5QrCode.resume(); }, 3000);
+      }
+    }
+
+    // ==========================================
+    // LOGIC TẢI LỊCH SỬ ĐIỂM DANH
+    // ==========================================
+    async function loadHistory() {
+      const list = document.getElementById('listHistory');
+      list.innerHTML = '<p class="text-center text-gray-500 bg-white p-4 rounded-xl shadow-sm text-sm border italic">Đang tải lịch sử...</p>';
+      
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'getLichSuDiemDanhTNV', sessionId: sessionId })
+        });
+        const res = await response.json();
+        
+        if(res.success) {
+          if(res.data.length === 0) {
+            list.innerHTML = '<p class="text-center text-gray-500 bg-white p-4 rounded-xl text-sm shadow-sm border italic">Chưa có lượt điểm danh nào.</p>';
+            return;
+          }
+
+          let html = '';
+          res.data.forEach(item => {
+            // Giả sử API trả về mảng object có cấu trúc { thoiGian: "...", caTruc: "...", diaDiem: "..." }
+            html += `
+              <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                  <h4 class="font-bold text-gray-800 text-sm">${item.caTruc || 'Điểm danh ca trực'}</h4>
+                  <p class="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                    📍 ${item.diaDiem || 'Khu vực hoạt động'}
+                  </p>
+                </div>
+                <div class="text-right">
+                  <span class="text-[10px] bg-green-100 text-green-800 font-bold px-2 py-1 rounded">Thành công</span>
+                  <p class="text-xs font-bold text-gray-600 mt-1">${item.thoiGian}</p>
+                </div>
+              </div>`;
+          });
+          list.innerHTML = html;
+        } else {
+          list.innerHTML = `<p class="text-center text-red-500 bg-white p-4 rounded-xl text-sm shadow-sm border italic">Lỗi: ${res.error}</p>`;
         }
       } catch (e) {
-        showResult(false, "❌ Lỗi kết nối. Vui lòng thử lại.");
+        list.innerHTML = `<p class="text-center text-red-500 bg-white p-4 rounded-xl text-sm shadow border italic">Lỗi kết nối khi tải lịch sử.</p>`;
       }
-      
-      btn.innerText = 'GỬI YÊU CẦU CẤP GCN'; 
-      btn.disabled = false;
     }
   </script>
 </body>
