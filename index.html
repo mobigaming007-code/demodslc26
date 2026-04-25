@@ -3,61 +3,51 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cổng thông tin - DSLC 2026</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <title>Đăng nhập - Đổi Sách Lấy Cây 2026</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: { extend: { colors: { greenDSLC: '#2E7D32', admin: '#1E3A8A' } } }
-    }
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style> body { font-family: 'Roboto', sans-serif; } </style>
 </head>
 <body class="bg-gray-100 h-screen flex items-center justify-center p-4">
 
-  <div class="bg-white p-8 rounded-2xl shadow-lg max-w-sm w-full relative">
-    <div class="text-center mb-6">
-      <h1 class="text-2xl font-black text-greenDSLC">ĐỔI SÁCH LẤY CÂY</h1>
-      <p class="text-sm text-gray-500 font-medium mt-1">Cổng thông tin Tình nguyện viên</p>
+  <div class="bg-white p-8 rounded-3xl shadow-xl max-w-sm w-full border border-gray-100">
+    <div class="text-center mb-8">
+      <h1 class="text-2xl font-black text-green-700 leading-tight">ĐỔI SÁCH LẤY CÂY<br>2026</h1>
+      <p class="text-xs text-gray-400 mt-2 font-medium tracking-widest uppercase">Cổng thông tin nội bộ</p>
     </div>
 
-    <div id="resultBox" class="hidden p-3 rounded-lg text-sm text-center font-bold mb-4"></div>
+    <div id="resultBox" class="hidden p-3 rounded-xl text-sm text-center font-bold mb-6 transition-all"></div>
 
-    <div id="formTNV" class="space-y-4">
+    <div id="formTNV" class="space-y-5">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Mã Tình nguyện viên</label>
-        <input type="text" id="maTNV" class="w-full border border-gray-300 rounded-lg p-3 bg-gray-50 focus:outline-none focus:border-greenDSLC focus:ring-1 focus:ring-greenDSLC uppercase" placeholder="VD: DSLC001">
+        <label class="block text-xs font-bold text-gray-500 uppercase mb-2 ml-1">Tài khoản Tình nguyện viên</label>
+        <input type="text" id="maTNV" class="w-full border-2 border-gray-100 rounded-2xl p-4 bg-gray-50 focus:outline-none focus:border-green-600 focus:bg-white transition-all uppercase font-bold text-gray-700" placeholder="Mã TNV hoặc Số điện thoại...">
       </div>
-
-      <button id="btnTNV" onclick="loginTNV()" class="w-full bg-greenDSLC text-white font-bold py-3.5 rounded-lg shadow hover:bg-green-800 transition">
-        VÀO TRANG ĐIỂM DANH
+      <button id="btnTNV" onclick="handleLogin('TNV')" class="w-full bg-green-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-green-200 hover:bg-green-800 active:scale-95 transition-all">
+        VÀO HỆ THỐNG
       </button>
-      
-      <div class="text-center mt-4">
-        <button onclick="toggleAdminForm()" class="text-xs text-gray-400 hover:text-admin underline">Truy cập dành cho Ban điều hành</button>
-      </div>
+      <button onclick="toggleView()" class="w-full text-xs text-gray-400 underline hover:text-blue-900 transition">Dành cho Ban điều hành</button>
     </div>
 
-    <div id="formAdmin" class="hidden space-y-4">
-      <div class="border-t border-b py-4 mb-2">
-        <p class="text-xs font-bold text-admin uppercase text-center mb-3">Xác thực Ban điều hành</p>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu hệ thống</label>
-          <input type="password" id="adminPass" class="w-full border border-gray-300 rounded-lg p-3 bg-gray-50 focus:outline-none focus:border-admin focus:ring-1 focus:ring-admin" placeholder="Nhập mật khẩu Admin...">
-        </div>
+    <div id="formAdmin" class="hidden space-y-5">
+      <div>
+        <label class="block text-xs font-bold text-blue-900 uppercase mb-2 ml-1">Email Ban điều hành</label>
+        <input type="email" id="adminUser" class="w-full border-2 border-gray-100 rounded-2xl p-4 bg-gray-50 focus:outline-none focus:border-blue-900 focus:bg-white transition-all font-bold mb-4" placeholder="Nhập Email đã phân quyền...">
+        
+        <label class="block text-xs font-bold text-blue-900 uppercase mb-2 ml-1">Mật khẩu</label>
+        <input type="password" id="adminPass" class="w-full border-2 border-gray-100 rounded-2xl p-4 bg-gray-50 focus:outline-none focus:border-blue-900 focus:bg-white transition-all font-bold" placeholder="••••••••">
       </div>
-
-      <button id="btnAdmin" onclick="loginAdmin()" class="w-full bg-admin text-white font-bold py-3.5 rounded-lg shadow hover:bg-blue-900 transition">
-        VÀO TRANG QUẢN TRỊ
+      <button id="btnAdmin" onclick="handleLogin('Admin')" class="w-full bg-blue-900 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 hover:bg-black active:scale-95 transition-all">
+        XÁC THỰC QUẢN TRỊ
       </button>
-      
-      <div class="text-center mt-4">
-        <button onclick="toggleAdminForm()" class="text-xs text-gray-400 hover:text-greenDSLC underline">Quay lại trang Tình nguyện viên</button>
-      </div>
+      <button onclick="toggleView()" class="w-full text-xs text-gray-400 underline hover:text-green-700 transition">Quay lại trang Tình nguyện viên</button>
     </div>
-
   </div>
 
   <script>
+    // ==========================================
+    // DÁN LINK WEB APP CỦA BẠN VÀO DÒNG DƯỚI ĐÂY
+    // ==========================================
     const API_URL = "https://script.google.com/macros/s/AKfycbwcv3zxA7Bqu2BGalGgDNwjct-oPhK8WgLtoaCswHwWRfhI73dQyFk0kMAQedBD579InQ/exec";
 
     window.onload = () => {
@@ -68,90 +58,71 @@
       }
     };
 
-    function showResult(success, message) {
-      const box = document.getElementById('resultBox');
-      box.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
-      box.classList.add(success ? 'bg-green-100' : 'bg-red-100', success ? 'text-green-800' : 'text-red-800');
-      box.innerHTML = message;
-    }
-
-    function toggleAdminForm() {
-      const fTNV = document.getElementById('formTNV');
-      const fAdmin = document.getElementById('formAdmin');
+    function toggleView() {
+      document.getElementById('formTNV').classList.toggle('hidden');
+      document.getElementById('formAdmin').classList.toggle('hidden');
       document.getElementById('resultBox').classList.add('hidden');
+    }
+
+    function showMsg(isSuccess, text) {
+      const box = document.getElementById('resultBox');
+      box.className = `p-3 rounded-xl text-sm text-center font-bold mb-6 ${isSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
+      box.innerText = text;
+      box.classList.remove('hidden');
+    }
+
+    async function handleLogin(role) {
+      const btn = role === 'TNV' ? document.getElementById('btnTNV') : document.getElementById('btnAdmin');
+      const payload = { action: role === 'TNV' ? 'loginTNV' : 'loginAdmin' };
       
-      if(fTNV.classList.contains('hidden')) {
-        fTNV.classList.remove('hidden');
-        fAdmin.classList.add('hidden');
+      if(role === 'TNV') {
+        payload.maTNV = document.getElementById('maTNV').value.trim();
+        if(!payload.maTNV) return showMsg(false, "Vui lòng nhập Mã TNV hoặc Số điện thoại!");
       } else {
-        fTNV.classList.add('hidden');
-        fAdmin.classList.remove('hidden');
+        payload.user = document.getElementById('adminUser').value.trim();
+        payload.pass = document.getElementById('adminPass').value.trim();
+        if(!payload.user || !payload.pass) return showMsg(false, "Vui lòng nhập đầy đủ Email và Mật khẩu!");
       }
-    }
 
-    // --- ĐĂNG NHẬP TNV ---
-    async function loginTNV() {
-      const maTNV = document.getElementById('maTNV').value.trim().toUpperCase();
-      if(!maTNV) return showResult(false, "Vui lòng nhập Mã Tình nguyện viên!");
-
-      const btn = document.getElementById('btnTNV');
-      btn.innerText = '⏳ Đang kiểm tra...';
       btn.disabled = true;
+      btn.innerText = "⏳ ĐANG KIỂM TRA...";
 
       try {
         const response = await fetch(API_URL, {
           method: 'POST',
-          body: JSON.stringify({ action: 'loginTNV', maTNV: maTNV })
+          mode: 'cors',
+          // Lệnh lách luật CORS kinh điển của JS khi gọi API Google Script
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
         });
+
         const res = await response.json();
-
-        if (res.success) {
-          showResult(true, "✅ Xác nhận thành công!");
+        
+        if(res.success) {
+          showMsg(true, "✅ Thành công! Đang chuyển hướng...");
+          
+          // Lưu session và vai trò
           sessionStorage.setItem('sessionId', res.sessionId);
-          sessionStorage.setItem('role', 'TNV');
-          setTimeout(() => window.location.href = 'diemdanh.html', 1000);
+          sessionStorage.setItem('role', res.role || role);
+          
+          // Lưu thông tin phân quyền của Admin để dùng ở trang admin.html
+          if(res.adminName) sessionStorage.setItem('adminName', res.adminName);
+          if(res.capQuyen) sessionStorage.setItem('capQuyen', res.capQuyen);
+          if(res.phamVi) sessionStorage.setItem('phamVi', res.phamVi);
+          
+          setTimeout(() => {
+            window.location.href = (res.role === 'Admin' || role === 'Admin') ? 'admin.html' : 'diemdanh.html';
+          }, 800);
+          
         } else {
-          showResult(false, "❌ " + res.error);
-          btn.innerText = 'VÀO TRANG ĐIỂM DANH';
+          showMsg(false, "❌ " + res.error);
           btn.disabled = false;
+          btn.innerText = role === 'TNV' ? "VÀO HỆ THỐNG" : "XÁC THỰC QUẢN TRỊ";
         }
-      } catch (error) {
-        showResult(false, "❌ Lỗi mạng hoặc máy chủ không phản hồi!");
-        btn.innerText = 'VÀO TRANG ĐIỂM DANH';
+      } catch (err) {
+        showMsg(false, "❌ Máy chủ không phản hồi. Vui lòng kiểm tra lại quyền truy cập (Anyone) trên Google Script!");
         btn.disabled = false;
-      }
-    }
-
-    // --- ĐĂNG NHẬP ADMIN ---
-    async function loginAdmin() {
-      const pass = document.getElementById('adminPass').value.trim();
-      if(!pass) return showResult(false, "Vui lòng nhập mật khẩu!");
-
-      const btn = document.getElementById('btnAdmin');
-      btn.innerText = '⏳ Đang xác thực...';
-      btn.disabled = true;
-
-      try {
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'loginAdmin', pass: pass })
-        });
-        const res = await response.json();
-
-        if (res.success) {
-          showResult(true, "✅ Xác thực Admin thành công!");
-          sessionStorage.setItem('sessionId', res.sessionId);
-          sessionStorage.setItem('role', 'Admin');
-          setTimeout(() => window.location.href = 'admin.html', 1000);
-        } else {
-          showResult(false, "❌ " + res.error);
-          btn.innerText = 'VÀO TRANG QUẢN TRỊ';
-          btn.disabled = false;
-        }
-      } catch (error) {
-        showResult(false, "❌ Lỗi kết nối!");
-        btn.innerText = 'VÀO TRANG QUẢN TRỊ';
-        btn.disabled = false;
+        btn.innerText = role === 'TNV' ? "VÀO HỆ THỐNG" : "XÁC THỰC QUẢN TRỊ";
       }
     }
   </script>
