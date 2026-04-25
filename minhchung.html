@@ -4,134 +4,125 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nộp Minh Chứng - DSLC 2026</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: { colors: { greenDSLC: '#2E7D32', yellowDSLC: '#F9A825' }, fontFamily: { sans: ['Roboto', 'sans-serif'] } }
-      }
-    }
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style> body { font-family: 'Roboto', sans-serif; } </style>
 </head>
-<body class="bg-gray-100 text-gray-800 pb-10">
+<body class="bg-gray-100 pb-10">
 
-  <nav class="bg-greenDSLC text-white shadow-md p-4 flex justify-between items-center fixed w-full top-0 z-50">
-    <h1 class="text-lg font-bold">Đổi Sách Lấy Cây 2026</h1>
-    <div class="text-sm font-medium">Minh chứng</div>
-<button onclick="logout()" class="text-xs bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-lg font-bold transition shadow-sm border border-red-400">
-        Đăng xuất
-      </button>
-</div>
+  <nav class="bg-green-800 text-white p-4 shadow-md fixed w-full top-0 z-50 flex justify-between items-center">
+    <h1 class="font-bold text-lg">DSLC 2026</h1>
+    <button onclick="logout()" class="text-xs bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg font-bold transition shadow">Đăng xuất</button>
   </nav>
-  <div class="max-w-md mx-auto px-4 pt-4">
-  <div class="flex space-x-1 bg-white p-1 rounded-xl shadow-sm border border-gray-100">
-    <a href="diemdanh.html" class="nav-link flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all" id="nav-diemdanh">Điểm danh</a>
-    <a href="minhchung.html" class="nav-link flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all text-gray-500 hover:bg-gray-50" id="nav-minhchung">Minh chứng</a>
-    <a href="gcn.html" class="nav-link flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all text-gray-500 hover:bg-gray-50" id="nav-gcn">Nhận GCN</a>
+
+  <div class="max-w-md mx-auto px-4 pt-20">
+    <div class="flex space-x-1 bg-white p-1 rounded-xl shadow-sm border border-gray-100">
+      <a href="diemdanh.html" class="flex-1 text-center py-2.5 text-xs font-bold rounded-lg text-gray-500 hover:bg-gray-50 transition">Điểm danh</a>
+      <a href="minhchung.html" class="flex-1 text-center py-2.5 text-xs font-bold rounded-lg bg-green-700 text-white shadow-sm">Minh chứng</a>
+      <a href="gcn.html" class="flex-1 text-center py-2.5 text-xs font-bold rounded-lg text-gray-500 hover:bg-gray-50 transition">Nhận GCN</a>
+    </div>
   </div>
-</div>
-  <div class="max-w-md mx-auto p-4 space-y-6 pt-20">
 
-    <div id="resultBox" class="hidden p-4 rounded-xl shadow-sm text-center font-bold"></div>
+  <main class="max-w-md mx-auto p-4 mt-2 space-y-6">
+    
+    <div id="resultBox" class="hidden p-4 rounded-xl shadow-sm text-center font-bold text-sm"></div>
 
-    <div class="bg-white rounded-xl shadow p-4">
-      <h2 class="font-bold text-lg text-greenDSLC border-b pb-2 mb-4">Nộp minh chứng bổ sung</h2>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+      <h2 class="font-bold text-lg text-green-800 border-b pb-2 mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+        Nộp minh chứng công việc
+      </h2>
       
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Gửi đến (Khu vực / Ban)</label>
-          <select id="maKhuVucNhan" class="w-full border border-gray-300 rounded-lg p-3 bg-gray-50 focus:outline-none focus:border-greenDSLC focus:ring-1 focus:ring-greenDSLC transition">
-            <option value="TUDONG">Tự động (Theo khu vực điểm danh gần nhất)</option>
-            <option value="KV_MEDIA">Ban Truyền Thông (Online)</option>
-            <option value="KV_HCONLINE">Ban Hành Chính (Online)</option>
-            <option value="KV_NGOAIGIO">Nhiệm vụ ngoài giờ / Khác</option>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Gửi đến Ban/Khu vực</label>
+          <select id="maKhuVucNhan" class="w-full border-2 border-gray-100 rounded-xl p-3 bg-gray-50 focus:outline-none focus:border-green-600 focus:bg-white text-sm font-medium transition">
+            <option value="TUDONG">Tự động (Theo khu vực gần nhất)</option>
+            <option value="KV_MEDIA">Ban Truyền Thông</option>
+            <option value="KV_HCONLINE">Ban Hành Chính</option>
+            <option value="KV_NGOAIGIO">Nhiệm vụ ngoài giờ</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Hạng mục công việc</label>
-          <select id="hangMuc" class="w-full border border-gray-300 rounded-lg p-3 bg-gray-50 focus:outline-none focus:border-greenDSLC focus:ring-1 focus:ring-greenDSLC transition">
+          <label class="block text-xs font-bold text-gray-600 mb-1">Hạng mục công việc</label>
+          <select id="hangMuc" class="w-full border-2 border-gray-100 rounded-xl p-3 bg-gray-50 focus:outline-none focus:border-green-600 focus:bg-white text-sm font-medium transition">
             <option value="Hỗ trợ vận chuyển">Hỗ trợ vận chuyển</option>
             <option value="Làm ngoài giờ trực">Làm ngoài giờ trực</option>
             <option value="Hỗ trợ hậu cần">Hỗ trợ hậu cần</option>
-            <option value="Hỗ trợ truyền thông">Hỗ trợ truyền thông</option>
             <option value="Khác">Khác</option>
           </select>
         </div>
         
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Mô tả chi tiết</label>
-          <textarea id="moTa" rows="3" class="w-full border border-gray-300 rounded-lg p-3 bg-gray-50 focus:outline-none focus:border-greenDSLC focus:ring-1 focus:ring-greenDSLC transition" placeholder="Ghi rõ bạn đã làm việc gì, ở đâu, từ mấy giờ đến mấy giờ..."></textarea>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Mô tả chi tiết</label>
+          <textarea id="moTa" rows="3" class="w-full border-2 border-gray-100 rounded-xl p-3 bg-gray-50 focus:outline-none focus:border-green-600 focus:bg-white text-sm transition" placeholder="Ghi rõ bạn đã làm việc gì, ở đâu, từ mấy giờ đến mấy giờ..."></textarea>
         </div>
         
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Ảnh minh chứng</label>
-          <input type="file" id="anhUpload" accept="image/*" onchange="previewImage(event)" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer">
+          <label class="block text-xs font-bold text-gray-600 mb-2">Ảnh chụp minh chứng</label>
+          <input type="file" id="anhUpload" accept="image/*" onchange="previewImage(event)" class="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer transition">
           
           <div id="imagePreviewContainer" class="hidden mt-3 relative">
-            <img id="imagePreview" class="w-full h-auto rounded-lg border border-gray-200 shadow-sm" src="" alt="Preview">
-            <button onclick="clearImage()" class="absolute top-2 right-2 bg-white text-red-500 rounded-full p-1 shadow hover:bg-red-50">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
+            <img id="imagePreview" class="w-full h-auto rounded-xl border border-gray-200 shadow-sm" src="" alt="Preview">
+            <button onclick="clearImage()" class="absolute top-2 right-2 bg-white text-red-500 rounded-full w-8 h-8 flex items-center justify-center shadow-md font-bold text-lg hover:bg-red-50">✕</button>
           </div>
         </div>
         
-        <button id="btnSubmit" onclick="submitData()" class="w-full bg-greenDSLC text-white font-bold py-4 rounded-lg mt-2 shadow hover:bg-green-800 transition flex justify-center items-center gap-2">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-          GỬI MINH CHỨNG
+        <button id="btnSubmit" onclick="submitData()" class="w-full bg-green-700 text-white font-bold py-4 rounded-xl mt-2 shadow-lg hover:bg-green-800 active:scale-95 transition-all">
+          GỬI BÁO CÁO MINH CHỨNG
         </button>
       </div>
     </div>
 
     <div>
-      <h3 class="font-bold text-lg mb-3 flex justify-between items-center">
-        Minh chứng đã gửi
-        <button onclick="loadHistory()" class="text-xs text-blue-600 underline font-normal bg-blue-50 px-2 py-1 rounded">Tải lại</button>
-      </h3>
+      <div class="flex justify-between items-end mb-3 px-1">
+        <h3 class="font-bold text-gray-800">Lịch sử minh chứng</h3>
+        <button onclick="loadHistory()" class="text-[11px] text-blue-600 font-bold hover:underline uppercase tracking-tighter">Làm mới</button>
+      </div>
       <div id="listMC" class="space-y-3">
-        <p class="text-center text-gray-500 bg-white p-4 rounded-xl shadow-sm border italic">Đang tải lịch sử...</p>
+        <p class="text-center text-gray-400 bg-white p-6 rounded-xl shadow-sm border italic text-sm">Đang tải lịch sử...</p>
       </div>
     </div>
 
-  </div>
+  </main>
 
   <script>
     // ==========================================
-    // 1. CẤU HÌNH API
+    // CẤU HÌNH API
     // ==========================================
-    const API_URL = "https://script.google.com/macros/s/AKfycbwRKWYPaOBl1Oto1EEB2WOFvCu5OhvSK0pTFsDO7tZCMrvks6sQLTsYla_G58TLdZXZhw/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbxDW90QgSOG6BYEIdYtvD557b6yvxNIw0zz0DskWHKQEIhiwqgVDcW7p1TtuNJasr-ITg/exec"; 
     const sessionId = sessionStorage.getItem('sessionId');
-    let compressedBase64 = null; // Biến lưu ảnh đã nén
+    let compressedBase64 = null; 
 
-    window.onload = () => {
-      if(!sessionId) return alert("Hết phiên đăng nhập. Vui lòng đăng nhập lại!");
-      loadHistory();
-    };
+    // Chặn nếu chưa đăng nhập
+    if(!sessionId) window.location.href = 'index.html';
 
-    async function callAPI(action, data = {}) {
-      const payload = { action: action, sessionId: sessionId, ...data };
-      try {
-        const response = await fetch(API_URL, {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
-        return await response.json();
-      } catch (e) {
-        return { success: false, error: "Lỗi kết nối máy chủ!" };
+    // Tự động tải lịch sử
+    window.onload = loadHistory;
+
+    function logout() {
+      if(confirm("Bạn có chắc chắn muốn đăng xuất?")) { 
+        sessionStorage.clear(); 
+        window.location.href = 'index.html'; 
       }
     }
 
-    function showResult(success, message) {
+    function showResult(success, msg) {
       const box = document.getElementById('resultBox');
-      box.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800', 'bg-blue-100', 'text-blue-800');
-      box.classList.add(success ? 'bg-green-100' : 'bg-red-100', success ? 'text-green-800' : 'text-red-800');
-      box.innerHTML = message;
+      box.className = `p-4 rounded-xl text-center font-bold text-sm mb-4 ${success ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'}`;
+      box.innerText = msg;
+      box.classList.remove('hidden');
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Tự ẩn thông báo sau 5 giây
+      if (success) {
+        setTimeout(() => { box.classList.add('hidden'); }, 5000);
+      }
     }
 
     // ==========================================
-    // 2. XỬ LÝ ẢNH (XEM TRƯỚC VÀ NÉN ẢNH)
+    // XỬ LÝ NÉN ẢNH TẠI TRÌNH DUYỆT (CANVAS)
     // ==========================================
     function clearImage() {
       document.getElementById('anhUpload').value = '';
@@ -141,56 +132,47 @@
 
     function previewImage(event) {
       const file = event.target.files[0];
-      if (!file) {
-        clearImage();
-        return;
-      }
+      if (!file) return clearImage();
 
-      // Hiển thị ảnh Preview
-      const previewUrl = URL.createObjectURL(file);
-      document.getElementById('imagePreview').src = previewUrl;
+      // Hiện ảnh review
+      document.getElementById('imagePreview').src = URL.createObjectURL(file);
       document.getElementById('imagePreviewContainer').classList.remove('hidden');
 
-      // Nén ảnh bằng Canvas để tránh lỗi quá tải API
+      // Đọc và nén ảnh
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = function(e) {
+      reader.onload = e => {
         const img = new Image();
         img.src = e.target.result;
-        img.onload = function() {
-          const MAX_WIDTH = 1024; // Kích thước tối đa
+        img.onload = () => {
+          // Giới hạn độ phân giải tối đa là 1024x1024 để tránh sập Google Apps Script
+          const MAX_WIDTH = 1024; 
           const MAX_HEIGHT = 1024;
-          let width = img.width;
+          let width = img.width; 
           let height = img.height;
 
-          // Tính toán tỷ lệ thu nhỏ
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
+          if (width > height && width > MAX_WIDTH) { 
+            height *= MAX_WIDTH / width; 
+            width = MAX_WIDTH; 
+          } else if (height > MAX_HEIGHT) { 
+            width *= MAX_HEIGHT / height; 
+            height = MAX_HEIGHT; 
           }
 
-          // Vẽ lại ảnh vào canvas với kích thước mới
           const canvas = document.createElement('canvas');
-          canvas.width = width;
+          canvas.width = width; 
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
           
-          // Xuất ra Base64 với chất lượng 0.7 (Nén 70%)
+          // Chuyển thành Base64 dạng JPEG chất lượng 70%
           compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
         }
       };
     }
 
     // ==========================================
-    // 3. GỬI DỮ LIỆU LÊN MÁY CHỦ
+    // GỬI DỮ LIỆU LÊN SERVER
     // ==========================================
     async function submitData() {
       const maKhuVucNhan = document.getElementById('maKhuVucNhan').value;
@@ -198,88 +180,104 @@
       const moTa = document.getElementById('moTa').value.trim();
       
       if(!moTa) return alert("Vui lòng nhập mô tả chi tiết công việc!");
-      if(!compressedBase64) return alert("Vui lòng đính kèm ảnh minh chứng hợp lệ!");
+      if(!compressedBase64) return alert("Vui lòng đính kèm ảnh chụp minh chứng!");
 
       const btn = document.getElementById('btnSubmit');
-      btn.innerHTML = '⏳ ĐANG TẢI LÊN...';
+      btn.innerText = '⏳ ĐANG TẢI LÊN...'; 
       btn.disabled = true;
-      btn.classList.add('opacity-70', 'cursor-not-allowed');
+      btn.classList.add('opacity-75');
 
-      const res = await callAPI("submitMinhChung", {
-        hangMuc: hangMuc, 
-        moTa: moTa, 
-        base64Image: compressedBase64,
-        maKhuVucNhan: maKhuVucNhan 
-      });
-
-      // Reset nút
-      btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> GỬI MINH CHỨNG`;
-      btn.disabled = false;
-      btn.classList.remove('opacity-70', 'cursor-not-allowed');
-
-      if(res.success) {
-        showResult(true, "✅ Đã gửi minh chứng! Vui lòng đợi Admin duyệt.");
-        document.getElementById('moTa').value = ''; 
-        clearImage(); // Xóa ảnh sau khi gửi thành công
-        loadHistory(); 
-      } else {
-        showResult(false, "❌ Lỗi: " + res.error);
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ 
+            action: 'submitMinhChung', 
+            sessionId: sessionId, 
+            hangMuc: hangMuc, 
+            moTa: moTa, 
+            base64Image: compressedBase64, 
+            maKhuVucNhan: maKhuVucNhan 
+          })
+        });
+        const res = await response.json();
+        
+        if(res.success) {
+          showResult(true, "✅ Đã gửi minh chứng thành công! Vui lòng chờ xét duyệt.");
+          document.getElementById('moTa').value = ''; 
+          clearImage(); 
+          loadHistory(); 
+        } else { 
+          showResult(false, "❌ " + res.error); 
+        }
+      } catch (e) { 
+        showResult(false, "❌ Máy chủ không phản hồi. Vui lòng kiểm tra lại kết nối mạng!"); 
       }
+      
+      btn.innerText = 'GỬI BÁO CÁO MINH CHỨNG'; 
+      btn.disabled = false;
+      btn.classList.remove('opacity-75');
     }
 
     // ==========================================
-    // 4. TẢI LỊCH SỬ TỪ MÁY CHỦ
+    // TẢI LỊCH SỬ TỪ SERVER
     // ==========================================
     async function loadHistory() {
-      document.getElementById('listMC').innerHTML = '<p class="text-center text-gray-500 bg-white p-4 rounded-xl shadow-sm border italic">Đang tải lịch sử...</p>';
+      const list = document.getElementById('listMC');
+      list.innerHTML = '<p class="text-center text-gray-400 bg-white p-6 rounded-xl shadow-sm text-sm border italic">Đang tải lịch sử...</p>';
       
-      const res = await callAPI("getMinhChungByTNV");
-      
-      if(res.success) {
-        let html = '';
-        res.data.forEach(item => {
-          let badgeClass = 'bg-yellow-100 text-yellow-800 border border-yellow-200';
-          if(item.trangThai === 'Đã duyệt') badgeClass = 'bg-green-100 text-green-800 border border-green-200';
-          if(item.trangThai === 'Từ chối') badgeClass = 'bg-red-100 text-red-800 border border-red-200';
-          
-          html += `
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-3 relative">
-              <div class="flex justify-between items-start">
-                <div class="pr-20"> <h4 class="font-bold text-gray-800">${item.hangMuc}</h4>
-                  <p class="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    ${item.thoiGian}
-                  </p>
-                </div>
-                <span class="absolute top-4 right-4 px-2 py-1 rounded text-[10px] font-bold ${badgeClass}">${item.trangThai}</span>
-              </div>
-              
-              <div class="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                ${item.moTa || 'Không có mô tả'}
-              </div>
-              
-              <div class="flex justify-between items-center pt-2 border-t mt-1">
-                <span class="text-green-600 font-extrabold text-sm">${item.soBuoi > 0 ? '+' + item.soBuoi + ' buổi' : ''}</span>
-                ${item.anhUrl ? `<a href="${item.anhUrl}" target="_blank" class="text-blue-600 text-xs font-bold underline hover:text-blue-800">🖼 Mở ảnh gốc</a>` : ''}
-              </div>
-              
-              ${item.ghiChu ? `<div class="bg-red-50 p-2 rounded text-xs text-red-600 font-medium border border-red-100 mt-2">📌 Admin nhắn: ${item.ghiChu}</div>` : ''}
-            </div>`;
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'getMinhChungByTNV', sessionId: sessionId })
         });
-        document.getElementById('listMC').innerHTML = html || '<p class="text-center text-gray-500 bg-white p-4 rounded-xl shadow-sm border italic">Chưa có minh chứng nào được ghi nhận.</p>';
-      } else {
-        document.getElementById('listMC').innerHTML = `<p class="text-center text-red-500 bg-white p-4 rounded-xl shadow-sm border italic">Lỗi: ${res.error}</p>`;
-      }
-    }
-// ==========================================
-    // HÀM ĐĂNG XUẤT
-    // ==========================================
-    function logout() {
-      if(confirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?")) {
-        // Xóa mã phiên làm việc
-        sessionStorage.removeItem('sessionId'); 
-        // Đẩy người dùng về trang đăng nhập
-        window.location.href = 'index.html'; 
+        const res = await response.json();
+        
+        if(res.success) {
+          if (res.data.length === 0) {
+            list.innerHTML = '<p class="text-center text-gray-400 bg-white p-6 rounded-xl shadow-sm text-sm border italic">Chưa có minh chứng nào được ghi nhận.</p>';
+            return;
+          }
+
+          let html = '';
+          res.data.forEach(item => {
+            let badgeClass = 'bg-yellow-100 text-yellow-800 border-yellow-200';
+            if(item.trangThai === 'Đã duyệt') badgeClass = 'bg-green-100 text-green-800 border-green-200';
+            if(item.trangThai === 'Từ chối') badgeClass = 'bg-red-100 text-red-800 border-red-200';
+
+            html += `
+              <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 relative">
+                <span class="absolute top-3 right-3 px-2 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">${item.trangThai}</span>
+                
+                <h4 class="font-bold text-gray-800 text-sm pr-16">${item.hangMuc}</h4>
+                <p class="text-[11px] text-gray-400 mt-1 flex items-center gap-1">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  ${item.thoiGian}
+                </p>
+                
+                <div class="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100 mt-3 leading-relaxed">
+                  ${item.moTa || 'Không có mô tả'}
+                </div>
+                
+                <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-50">
+                  <span class="text-green-600 font-black text-sm">${item.soBuoi > 0 ? '+' + item.soBuoi + ' buổi' : ''}</span>
+                  ${item.anhUrl ? `<a href="${item.anhUrl}" target="_blank" class="text-blue-600 text-[11px] font-bold hover:underline flex items-center gap-1">🖼 Mở ảnh đính kèm</a>` : ''}
+                </div>
+                
+                ${item.ghiChu ? `
+                  <div class="mt-3 bg-red-50 p-2.5 rounded-lg text-xs text-red-700 font-medium border border-red-100 flex items-start gap-2">
+                    <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>Lý do: ${item.ghiChu}</span>
+                  </div>` : ''}
+              </div>`;
+          });
+          list.innerHTML = html;
+        } else {
+          list.innerHTML = `<p class="text-center text-red-500 bg-white p-4 rounded-xl text-sm shadow-sm border">Lỗi: ${res.error}</p>`;
+        }
+      } catch (e) {
+        list.innerHTML = `<p class="text-center text-red-500 bg-white p-4 rounded-xl text-sm shadow-sm border">Lỗi mạng khi tải lịch sử.</p>`;
       }
     }
   </script>
