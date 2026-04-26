@@ -105,6 +105,7 @@
           
           // Lưu session và vai trò
           sessionStorage.setItem('sessionId', res.sessionId);
+          sessionStorage.setItem('hoTen', res.hoTen);
           sessionStorage.setItem('role', res.role || role);
           
           // Lưu thông tin phân quyền của Admin để dùng ở trang admin.html
