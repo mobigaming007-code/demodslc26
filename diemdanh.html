@@ -47,7 +47,7 @@
   </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzfY7ysLsxRX6lInHkg2Bv0vHTa9qzoHlCPbiBC6SJ_hpEY9fkmcyjwR0Jjus0SCW14rw/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbz69l1fskI_nQmeiy4xdM3MaEr-zONItTbIp3nw1pUwsXAg3ocFlVREDnFyIcX4_z4Kvg/exec";
     const sessionId = sessionStorage.getItem('sessionId');
 
     // Chặn người dùng chưa đăng nhập
@@ -128,6 +128,7 @@
             qrCode: qrData,
             lat: lat,
             lng: lng
+            userAgent: navigator.userAgent // <--- THÊM DÒNG NÀY LÀ HẾT UNDEFINED
           })
         });
         const res = await response.json();
