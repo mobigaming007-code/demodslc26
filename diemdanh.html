@@ -12,7 +12,7 @@
 <body class="bg-gray-100 pb-10">
 
   <nav class="bg-green-800 text-white p-4 shadow-md fixed w-full top-0 z-50 flex justify-between items-center">
-    <h1 class="font-bold text-lg">Chương trình "Đổi sách lấy cây" năm 2026</h1>
+    <h1 class="font-bold text-lg">DSLC 2026</h1>
     <button onclick="logout()" class="text-xs bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg font-bold transition shadow">Đăng xuất</button>
   </nav>
 
@@ -30,14 +30,15 @@
       <h2 class="font-bold text-green-800 text-lg mb-2">Quét mã QR Điểm danh</h2>
       <p class="text-xs text-gray-500 mb-4">Đưa camera vào sát mã QR do Trưởng ca cung cấp để ghi nhận.</p>
       
-      <div id="reader" class="rounded-xl overflow-hidden shadow-inner bg-black w-full aspect-square"></div>
+      <div id="reader" class="rounded-xl overflow-hidden shadow-inner bg-black w-full aspect-square relative"></div>
+      
       <div id="result" class="hidden p-4 rounded-xl shadow-sm text-center font-bold text-sm border mt-4"></div>
     </div>
     
     <div>
       <div class="flex justify-between items-end mb-3">
         <h3 class="font-bold text-gray-800">Lịch sử hôm nay</h3>
-        <button onclick="loadHistory()" class="text-xs text-blue-600 underline font-medium">Tải lại</button>
+        <button onclick="loadHistory()" class="text-xs text-blue-600 underline font-medium hover:text-blue-800">Làm mới</button>
       </div>
       <div id="listHistory" class="space-y-3">
         <p class="text-center text-gray-500 bg-white p-4 rounded-xl shadow-sm text-sm border italic">Đang tải dữ liệu...</p>
@@ -47,7 +48,8 @@
   </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbz69l1fskI_nQmeiy4xdM3MaEr-zONItTbIp3nw1pUwsXAg3ocFlVREDnFyIcX4_z4Kvg/exec";
+    // NHỚ DÁN LINK SCRIPT MỚI NHẤT CỦA BẠN VÀO ĐÂY
+    const API_URL = "https://script.google.com/macros/s/AKfycbxZPGPpvG7Ja9FKo4r_Jqvbt3RoSSBSsr7KtApP7HKTYuZOO3_PG0DheJW-C3PtqcI3/exec";
     const sessionId = sessionStorage.getItem('sessionId');
 
     // Chặn người dùng chưa đăng nhập
@@ -64,24 +66,28 @@
     }
 
     // ==========================================
-    // LOGIC CAMERA QUÉT QR
+    // 1. GỌI CAMERA QUÉT QR
     // ==========================================
     const html5QrCode = new Html5Qrcode("reader");
+    
     html5QrCode.start(
-      { facingMode: "environment" }, 
+      { facingMode: "environment" }, // Ưu tiên dùng camera sau của điện thoại
       { fps: 10, qrbox: { width: 250, height: 250 } },
       (decodedText) => {
         html5QrCode.pause(true); // Tạm dừng camera sau khi quét trúng
         handleDiemDanh(decodedText);
       }
     ).catch(err => {
-      document.getElementById('result').classList.remove('hidden');
-      document.getElementById('result').innerText = "❌ Không thể mở Camera. Hãy đảm bảo bạn đã cấp quyền truy cập!";
-      document.getElementById('result').className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
+      // Bắt lỗi nếu trình duyệt chặn Camera
+      const resBox = document.getElementById('result');
+      resBox.classList.remove('hidden');
+      resBox.innerHTML = "❌ Không thể mở Camera!<br><span class='text-xs font-normal mt-1 block'>Hãy kiểm tra lại quyền truy cập Máy ảnh (Camera) của trình duyệt.</span>";
+      resBox.className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
+      console.error("Lỗi khởi tạo Camera: ", err);
     });
 
     // ==========================================
-    // LOGIC CAMERA & ĐỊNH VỊ GPS
+    // 2. LẤY GPS VÀ CHUẨN BỊ GỬI
     // ==========================================
     async function handleDiemDanh(qrData) {
       const resBox = document.getElementById('result');
@@ -92,31 +98,33 @@
       // Kiểm tra xem trình duyệt có hỗ trợ GPS không
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-          // Trùng hợp 1: Lấy GPS thành công -> Gửi data
+          // Nếu người dùng cho phép lấy vị trí
           async (position) => {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
             sendDataToServer(qrData, lat, lng);
           },
-          // Trùng hợp 2: Lỗi (TNV từ chối cấp quyền hoặc GPS đang tắt)
+          // Nếu bị lỗi (tắt định vị, từ chối cấp quyền)
           (error) => {
-            resBox.innerText = "❌ Không lấy được vị trí. Hãy bật Định vị (Location) trên điện thoại và tải lại trang!";
+            resBox.innerHTML = "❌ Không lấy được vị trí GPS.<br><span class='text-xs font-normal mt-1 block'>Hãy bật Định vị (Location) trên điện thoại và tải lại trang!</span>";
             resBox.className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
-            setTimeout(() => html5QrCode.resume(), 3500);
+            setTimeout(() => { resBox.classList.add('hidden'); html5QrCode.resume(); }, 4000);
           },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 } // Ép lấy tọa độ chính xác cao nhất
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 } // Ép lấy tọa độ chính xác cao
         );
       } else {
         resBox.innerText = "❌ Trình duyệt/Điện thoại của bạn không hỗ trợ tính năng định vị!";
         resBox.className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
-        setTimeout(() => html5QrCode.resume(), 3500);
+        setTimeout(() => { resBox.classList.add('hidden'); html5QrCode.resume(); }, 4000);
       }
     }
 
-    // Gửi mã QR + GPS lên Google Script
+    // ==========================================
+    // 3. GỬI DỮ LIỆU ĐIỂM DANH LÊN MÁY CHỦ
+    // ==========================================
     async function sendDataToServer(qrData, lat, lng) {
       const resBox = document.getElementById('result');
-      resBox.innerText = "⏳ Đang đối chiếu vị trí với máy chủ...";
+      resBox.innerText = "⏳ Đang đối chiếu vị trí với hệ thống...";
 
       try {
         const response = await fetch(API_URL, {
@@ -127,8 +135,8 @@
             sessionId: sessionId, 
             qrCode: qrData,
             lat: lat,
-            lng: lng
-            userAgent: navigator.userAgent // <--- THÊM DÒNG NÀY LÀ HẾT UNDEFINED
+            lng: lng,
+            userAgent: navigator.userAgent // Fix lỗi undefined trên Sheet
           })
         });
         const res = await response.json();
@@ -136,23 +144,28 @@
         if (res.success) {
           resBox.innerText = "✅ " + res.message;
           resBox.className = "p-4 bg-green-100 text-green-800 rounded-xl shadow-sm text-center font-bold text-sm border border-green-200 mt-4";
+          // Tải lại lịch sử ngay sau khi quét thành công
           loadHistory(); 
         } else {
           resBox.innerText = "❌ " + res.error;
           resBox.className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
         }
         
-        setTimeout(() => { resBox.classList.add('hidden'); html5QrCode.resume(); }, 4000); 
+        // Tự động mở quét lại sau 3.5 giây
+        setTimeout(() => { 
+          resBox.classList.add('hidden'); 
+          html5QrCode.resume(); 
+        }, 3500); 
 
       } catch (e) {
-        resBox.innerText = "❌ Lỗi mạng. Vui lòng thử lại!";
+        resBox.innerText = "❌ Lỗi kết nối mạng. Vui lòng thử lại!";
         resBox.className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
         setTimeout(() => { resBox.classList.add('hidden'); html5QrCode.resume(); }, 3000);
       }
     }
 
     // ==========================================
-    // LOGIC TẢI LỊCH SỬ ĐIỂM DANH
+    // 4. LOGIC TẢI LỊCH SỬ ĐIỂM DANH TỪ SHEET
     // ==========================================
     async function loadHistory() {
       const list = document.getElementById('listHistory');
@@ -168,24 +181,21 @@
         
         if(res.success) {
           if(res.data.length === 0) {
-            list.innerHTML = '<p class="text-center text-gray-500 bg-white p-4 rounded-xl text-sm shadow-sm border italic">Chưa có lượt điểm danh nào.</p>';
+            list.innerHTML = '<p class="text-center text-gray-500 bg-white p-4 rounded-xl text-sm shadow-sm border italic">Chưa có dữ liệu điểm danh.</p>';
             return;
           }
 
           let html = '';
           res.data.forEach(item => {
-            // Giả sử API trả về mảng object có cấu trúc { thoiGian: "...", caTruc: "...", diaDiem: "..." }
             html += `
               <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
                 <div>
-                  <h4 class="font-bold text-gray-800 text-sm">${item.caTruc || 'Điểm danh ca trực'}</h4>
-                  <p class="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
-                    📍 ${item.diaDiem || 'Khu vực hoạt động'}
-                  </p>
+                  <h4 class="font-bold text-gray-800 text-sm">Điểm danh (${item.thoiGian})</h4>
+                  <p class="text-[11px] text-gray-500 mt-1 flex items-center gap-1">📍 Khu vực: ${item.diaDiem}</p>
+                  ${item.ghiChu ? `<p class="text-[10px] text-red-500 mt-1 font-medium bg-red-50 inline-block px-1.5 py-0.5 rounded border border-red-100">${item.ghiChu}</p>` : ''}
                 </div>
                 <div class="text-right">
-                  <span class="text-[10px] bg-green-100 text-green-800 font-bold px-2 py-1 rounded">Thành công</span>
-                  <p class="text-xs font-bold text-gray-600 mt-1">${item.thoiGian}</p>
+                  <span class="text-[10px] bg-green-100 text-green-800 font-bold px-2 py-1 rounded-md border border-green-200 whitespace-nowrap">${item.trangThai}</span>
                 </div>
               </div>`;
           });
