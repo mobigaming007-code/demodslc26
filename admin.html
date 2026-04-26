@@ -44,6 +44,10 @@
         <button onclick="switchTab('lichsumc')" id="btn-lichsumc" class="px-4 py-2 text-xs font-bold rounded-lg text-gray-600 hover:bg-gray-100 transition">
           Lịch sử MC
         </button>
+
+        <button onclick="switchTab('lichSuGCN')" class="tab-btn px-4 py-2 text-sm font-medium hover:text-yellow-400 transition-colors">
+          Lịch sử GCN
+        </button>
       </div>
     </div>
   </div>
@@ -118,10 +122,57 @@
       </div>
     </div>
 
+    <div id="lichSuGCN" class="tab-content mt-20 px-4">
+  <div class="bg-white rounded-2xl p-4 shadow-sm mb-4">
+    <h2 class="font-bold text-gray-800 mb-3">Lịch sử & Điều chỉnh GCN</h2>
+    <div class="relative mb-4">
+      <input type="text" id="inputSearchGCN" onkeyup="filterGCN()" placeholder="Tìm Mã TNV hoặc SĐT..." 
+             class="w-full pl-10 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+      <span class="absolute left-3 top-2.5 text-gray-400">🔍</span>
+    </div>
+
+    <div id="listLichSuGCN" class="space-y-3">
+      </div>
+  </div>
+</div>
+
+<div id="modalEditGCN" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-md p-6">
+    <h3 class="font-bold text-lg mb-4">Điều chỉnh yêu cầu GCN</h3>
+    <input type="hidden" id="editMaYC">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1">Trạng thái</label>
+        <select id="editStatusGCN" class="w-full border rounded-lg p-2 text-sm">
+          <option value="Hẹn ngày trả">Hẹn ngày trả</option>
+          <option value="Đã trả GCN">Đã trả GCN</option>
+          <option value="Từ chối">Từ chối</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1">Ngày hẹn trả</label>
+        <input type="date" id="editNgayHenGCN" class="w-full border rounded-lg p-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1">Link GCN (Drive)</label>
+        <input type="text" id="editLinkGCN" class="w-full border rounded-lg p-2 text-sm" placeholder="Dán link PDF...">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1">Ghi chú/Lý do</label>
+        <textarea id="editGhiChuGCN" class="w-full border rounded-lg p-2 text-sm" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-6">
+      <button onclick="closeModalGCN()" class="flex-1 py-2 bg-gray-100 rounded-xl text-sm font-bold">Hủy</button>
+      <button onclick="submitUpdateGCN()" class="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold">Cập nhật</button>
+    </div>
+  </div>
+</div>
+
   </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycby96nAGEy-x2aYZ_rtkyoCjnQDb3SgY8SaaK_fHKwyYCat7ssC871lUh4EXPTiyroKP/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbxB6GSnssJV3qXKDuAlz4VKujAougIg-GCQHJrwNwC_mMFrvPJeSVsha0ZWpr9RUHRB/exec";
     const sessionId = sessionStorage.getItem('sessionId');
     const adminName = sessionStorage.getItem('adminName') || "Admin";
 
@@ -346,6 +397,98 @@
         }
       } catch (e) {}
     }
+    let dataGCNFull = []; // Lưu trữ để tìm kiếm nhanh
+
+// Hàm tải dữ liệu GCN
+async function loadLichSuGCN() {
+  const container = document.getElementById('listLichSuGCN');
+  container.innerHTML = '<p class="text-center text-sm text-gray-500">Đang tải...</p>';
+  try {
+    const response = await fetch(API_URL, { 
+      method: 'POST', 
+      body: JSON.stringify({ action: 'getLichSuGCN', sessionId }) 
+    });
+    const res = await response.json();
+    if (res.success) {
+      dataGCNFull = res.data;
+      renderTableGCN(dataGCNFull);
+    }
+  } catch (err) {
+    container.innerHTML = "Lỗi kết nối.";
+  }
+}
+
+// Hàm hiển thị bảng GCN
+function renderTableGCN(data) {
+  const container = document.getElementById('listLichSuGCN');
+  if (data.length === 0) { container.innerHTML = "Không tìm thấy dữ liệu."; return; }
+  
+  container.innerHTML = data.map(item => `
+    <div class="border rounded-xl p-3 bg-white shadow-sm flex justify-between items-center">
+      <div class="flex-1">
+        <p class="font-bold text-gray-800 text-sm">${item.hoTen} <span class="text-[10px] text-gray-400 font-normal">#${item.maYC}</span></p>
+        <p class="text-[11px] text-gray-500">Mã: ${item.maTNV} - SĐT: ${item.sdt}</p>
+        <p class="text-[11px] text-blue-600 font-medium">Loại: ${item.loaiGCN} - Hẹn: ${item.ngayHenTra}</p>
+      </div>
+      <div class="text-right">
+        <span class="inline-block px-2 py-0.5 text-[9px] font-bold rounded-full mb-2 ${item.trangThai === 'Đã trả GCN' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
+          ${item.trangThai}
+        </span>
+        <br>
+        <button onclick="openModalGCN('${item.maYC}')" class="text-xs bg-gray-800 text-white px-3 py-1 rounded-lg">Sửa</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Hàm tìm kiếm (Search)
+function filterGCN() {
+  const key = document.getElementById('inputSearchGCN').value.toUpperCase();
+  const filtered = dataGCNFull.filter(i => 
+    i.maTNV.includes(key) || i.sdt.includes(key) || i.hoTen.toUpperCase().includes(key)
+  );
+  renderTableGCN(filtered);
+}
+
+// Điều khiển Modal
+function openModalGCN(maYC) {
+  const item = dataGCNFull.find(x => x.maYC === maYC);
+  if(!item) return;
+  document.getElementById('editMaYC').value = maYC;
+  document.getElementById('editStatusGCN').value = item.trangThai;
+  document.getElementById('editLinkGCN').value = item.gcnUrl || "";
+  document.getElementById('editGhiChuGCN').value = item.ghiChu || "";
+  document.getElementById('modalEditGCN').classList.remove('hidden');
+}
+
+function closeModalGCN() {
+  document.getElementById('modalEditGCN').classList.add('hidden');
+}
+
+async function submitUpdateGCN() {
+  const btn = event.target;
+  btn.innerText = "Đang lưu...";
+  const payload = {
+    action: 'adminUpdateGCN',
+    sessionId,
+    maYC: document.getElementById('editMaYC').value,
+    status: document.getElementById('editStatusGCN').value,
+    ngayHen: document.getElementById('editNgayHenGCN').value,
+    urlGCN: document.getElementById('editLinkGCN').value,
+    ghiChu: document.getElementById('editGhiChuGCN').value
+  };
+
+  const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+  const res = await response.json();
+  if (res.success) {
+    alert("Cập nhật thành công!");
+    closeModalGCN();
+    loadLichSuGCN();
+  } else {
+    alert("Lỗi: " + res.error);
+  }
+  btn.innerText = "Cập nhật";
+}
   </script>
 </body>
 </html>
