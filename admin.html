@@ -444,6 +444,47 @@ async function loadLichSuGCN() {
     container.innerHTML = "<p class='text-center text-red-500 text-xs'>Lỗi kết nối hệ thống.</p>"; 
   }
 }
+
+    /**
+ * Hàm mở hộp thoại điều chỉnh GCN nhanh
+ */
+async function openEditGCN(maYC, currentStatus, currentNote) {
+  // 1. Thu thập thông tin mới qua Prompt
+  const newStatus = prompt("Nhập trạng thái mới (Hoàn thành / Hẹn ngày trả / Từ chối):", currentStatus);
+  if (newStatus === null) return; // Người dùng nhấn Hủy
+
+  const newNote = prompt("Nhập lý do điều chỉnh hoặc ghi chú mới:", currentNote || "");
+  if (newNote === null) return;
+
+  const urlGCN = (newStatus === "Hoàn thành") ? prompt("Dán link GCN (nếu có):", "") : "";
+
+  // 2. Gửi yêu cầu về Backend
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'adminUpdateGCN',
+        sessionId: sessionId,
+        maYC: maYC,
+        status: newStatus,
+        ghiChu: newNote,
+        urlGCN: urlGCN,
+        adminName: adminName,
+        ngayHen: new Date() // Mặc định cập nhật ngày xử lý mới
+      })
+    });
+
+    const res = await response.json();
+    if (res.success) {
+      alert("Đã điều chỉnh GCN thành công!");
+      loadLichSuGCN(); // Tải lại danh sách để cập nhật hiển thị
+    } else {
+      alert("Lỗi: " + res.error);
+    }
+  } catch (e) {
+    alert("Lỗi kết nối server: " + e.message);
+  }
+}
   </script>
 </body>
 </html>
