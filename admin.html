@@ -137,7 +137,7 @@
   </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbxFssbKgTI5wnRMJqS6Tc2Y9Kp8I-s7cNyCw0UxxTvLoz9s9eHpS6Bt4kXHD_h0r3qmIA/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycby3E8BDLiNKmJviwbfKPACcP9RJNlFlSi-87_oJ04-jKLMGdCDGANjWHlMBh6yURcJARg/exec";
     const sessionId = sessionStorage.getItem('sessionId');
     const adminName = sessionStorage.getItem('adminName') || "Admin";
 
@@ -401,26 +401,46 @@ async function openEditMC(maMC, currentBuoi, currentNote) {
   }
 }
 
-// Tương tự, bổ sung hàm loadLichSuGCN() và openEditGCN() cho Tab mới[cite: 10, 11]
+/**
+ * Hàm hiển thị Lịch sử GCN tương tự cách hiển thị Lịch sử MC
+ */
 async function loadLichSuGCN() {
   const container = document.getElementById('listLichSuGCN');
-  container.innerHTML = 'Đang tải...';
-  const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getLichSuGCN', sessionId }) });
-  const res = await response.json();
-  if (res.success) {
-    // Kiểm tra trong file admin.html đoạn đổ dữ liệu vào bảng
-container.innerHTML = res.data.map(item => `
-  <div class="border rounded-xl p-3 bg-white shadow-sm item-row">
-    <div>
-      <p class="font-bold text-gray-800">${item.hoTen} (${item.maTNV})</p>
-      <p class="text-[10px] text-gray-500">SĐT: ${item.sdt} | Loại: ${item.loaiGCN}</p>
-      <!-- Kiểm tra badge hiển thị -->
-      <p class="text-[10px] ${item.trangThai === 'Từ chối' ? 'text-red-600 bg-red-50' : 'text-blue-700 bg-blue-50'} px-2 py-0.5 rounded inline-block mt-1">
-        ${item.trangThai}
-      </p>
-    </div>
-    <button onclick="openEditGCN('${item.maYC}', '${item.trangThai}', '${item.ghiChu || ''}')" class="text-[10px] bg-gray-100 px-2 py-1 rounded">Sửa</button>
-  </div>`).join('');
+  container.innerHTML = '<p class="text-center text-xs text-gray-500">Đang tải dữ liệu...</p>';
+  
+  try {
+    const response = await fetch(API_URL, { 
+      method: 'POST', 
+      body: JSON.stringify({ action: 'getLichSuGCN', sessionId }) 
+    });
+    const res = await response.json();
+    
+    if (res.success) {
+      if (res.data.length === 0) { 
+        container.innerHTML = "<p class='text-center text-gray-400 text-xs'>Chưa có lịch sử GCN.</p>"; 
+        return; 
+      }
+
+      container.innerHTML = res.data.map(item => `
+        <div class="border rounded-xl p-3 bg-white flex justify-between items-center shadow-sm item-row">
+          <div class="flex-1">
+            <p class="font-bold text-gray-800 text-sm">${item.hoTen} <span class="text-[10px] text-gray-400 font-normal">#${item.maYC}</span></p>
+            <p class="text-[10px] text-gray-500">Mã: ${item.maTNV} | SĐT: ${item.sdt}</p>
+            <p class="text-[10px] text-blue-600 font-medium">Loại: ${item.loaiGCN} - Hẹn: ${item.ngayHenTra}</p>
+            <button onclick="openEditGCN('${item.maYC}', '${item.trangThai}', '${item.ghiChu || ''}')" 
+                    class="text-[10px] text-blue-600 underline mt-1 font-bold">Điều chỉnh GCN</button>
+          </div>
+          <div class="text-right flex flex-col items-end">
+            <span class="px-2 py-0.5 text-[9px] font-bold rounded-full text-white 
+              ${item.trangThai === 'Hoàn thành' ? 'bg-green-500' : (item.trangThai === 'Từ chối' ? 'bg-red-500' : 'bg-yellow-500')}">
+              ${item.trangThai}
+            </span>
+            <span class="text-[10px] text-gray-400 mt-1 italic">Duyệt bởi: ${item.admin || 'Admin'}</span>
+          </div>
+        </div>`).join('');
+    }
+  } catch (e) { 
+    container.innerHTML = "<p class='text-center text-red-500 text-xs'>Lỗi kết nối hệ thống.</p>"; 
   }
 }
   </script>
