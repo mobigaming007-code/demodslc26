@@ -137,7 +137,7 @@
   </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbx4k8chis5WC8e9SBeiJ7dOCeCqgUtEtYpYCqKxMHP4HNdX1Y4W1A4tZ3oPu9WEf8idQw/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbxFssbKgTI5wnRMJqS6Tc2Y9Kp8I-s7cNyCw0UxxTvLoz9s9eHpS6Bt4kXHD_h0r3qmIA/exec";
     const sessionId = sessionStorage.getItem('sessionId');
     const adminName = sessionStorage.getItem('adminName') || "Admin";
 
@@ -408,17 +408,19 @@ async function loadLichSuGCN() {
   const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getLichSuGCN', sessionId }) });
   const res = await response.json();
   if (res.success) {
-    container.innerHTML = res.data.map(item => `
-      <div class="border rounded-xl p-3 bg-white shadow-sm item-row">
-        <div class="flex justify-between items-start">
-          <div>
-            <p class="font-bold text-gray-800">${item.hoTen} (${item.maTNV})</p>
-            <p class="text-[10px] text-gray-500">SĐT: ${item.sdt} | Loại: ${item.loaiGCN}</p>
-            <p class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded inline-block mt-1">${item.trangThai}</p>
-          </div>
-          <button onclick="openEditGCN('${item.maYC}')" class="text-[10px] bg-gray-100 px-2 py-1 rounded">Sửa</button>
-        </div>
-      </div>`).join('');
+    // Kiểm tra trong file admin.html đoạn đổ dữ liệu vào bảng
+container.innerHTML = res.data.map(item => `
+  <div class="border rounded-xl p-3 bg-white shadow-sm item-row">
+    <div>
+      <p class="font-bold text-gray-800">${item.hoTen} (${item.maTNV})</p>
+      <p class="text-[10px] text-gray-500">SĐT: ${item.sdt} | Loại: ${item.loaiGCN}</p>
+      <!-- Kiểm tra badge hiển thị -->
+      <p class="text-[10px] ${item.trangThai === 'Từ chối' ? 'text-red-600 bg-red-50' : 'text-blue-700 bg-blue-50'} px-2 py-0.5 rounded inline-block mt-1">
+        ${item.trangThai}
+      </p>
+    </div>
+    <button onclick="openEditGCN('${item.maYC}', '${item.trangThai}', '${item.ghiChu || ''}')" class="text-[10px] bg-gray-100 px-2 py-1 rounded">Sửa</button>
+  </div>`).join('');
   }
 }
   </script>
