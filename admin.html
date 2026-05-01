@@ -112,14 +112,17 @@
     </div>
 
     <div id="tab-lichsumc" class="tab-content">
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="bg-gray-50 px-4 py-3 border-b flex justify-between">
-          <h2 class="font-bold text-gray-800 text-sm">Lịch sử Duyệt Minh Chứng (50 lượt gần nhất)</h2>
-          <button onclick="loadLichSuMC()" class="text-xs text-blue-600 underline">Làm mới</button>
-        </div>
-        <div id="listLichSuMC" class="p-4 space-y-3 text-sm"></div>
-      </div>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="bg-gray-50 px-4 py-3 border-b flex flex-col md:flex-row justify-between gap-2">
+      <h2 class="font-bold text-gray-800 text-sm">Lịch sử Duyệt Minh Chứng</h2>
+      <!-- Ô tra cứu Mã TNV/SĐT -->
+      <input type="text" id="search-mc" onkeyup="filterTable('listLichSuMC', 'search-mc')" 
+             placeholder="Tra cứu Mã TNV hoặc SĐT..." 
+             class="text-xs border rounded px-2 py-1 outline-none focus:ring-1 ring-blue-500">
     </div>
+    <div id="listLichSuMC" class="p-4 space-y-3 text-sm"></div>
+  </div>
+</div>
 
     <div id="tab-lichsugcn" class="tab-content">
   <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -134,7 +137,7 @@
   </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbw833zl2KQKvUTws5zjDVcP_x1fsjrR7p0MJXvhCRTKrz8gFBPhEBG-D_LuWguFC_CViQ/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbw_Fao0KmGU8WiMNApFUv1ie6TVGLAhCq0Vqc3fbn7JpqiTvpSHOGNH0Fz310mYVwCwWQ/exec";
     const sessionId = sessionStorage.getItem('sessionId');
     const adminName = sessionStorage.getItem('adminName') || "Admin";
 
@@ -337,28 +340,33 @@
 
     // --- TAB 5: LỊCH SỬ MC ---
     async function loadLichSuMC() {
-      const container = document.getElementById('listLichSuMC');
-      container.innerHTML = 'Đang tải...';
-      try {
-        const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getLichSuMinhChung', sessionId }) });
-        const res = await response.json();
-        if (res.success) {
-          if (res.data.length === 0) { container.innerHTML = "Chưa có lịch sử."; return; }
-          container.innerHTML = res.data.map(item => `
-            <div class="border rounded-xl p-3 bg-white flex justify-between items-center shadow-sm">
-              <div>
-                <p class="font-bold text-gray-800">${item.hoTen} <span class="text-xs text-gray-500 font-normal">(${item.maMC})</span></p>
-                <p class="text-[11px] text-gray-500">Duyệt: ${item.thoiGianDuyet} bởi ${item.admin}</p>
-                ${item.ghiChu ? `<p class="text-[10px] bg-gray-100 px-2 py-1 mt-1 rounded italic">${item.ghiChu}</p>` : ''}
-              </div>
-              <div class="text-right flex flex-col items-end">
-                <span class="px-2 py-1 text-[10px] font-bold rounded-full text-white ${item.trangThai === 'Đã duyệt' ? 'bg-green-500' : 'bg-red-500'}">${item.trangThai}</span>
-                ${item.trangThai === 'Đã duyệt' ? `<span class="text-xs font-bold text-green-700 mt-1">+${item.soBuoi} buổi</span>` : ''}
-              </div>
-            </div>`).join('');
-        }
-      } catch (e) {}
+  const container = document.getElementById('listLichSuMC');
+  container.innerHTML = 'Đang tải...';
+  try {
+    const response = await fetch(API_URL, { 
+      method: 'POST', 
+      body: JSON.stringify({ action: 'getLichSuMinhChung', sessionId }) 
+    });
+    const res = await response.json();
+    if (res.success) {
+      if (res.data.length === 0) { container.innerHTML = "Chưa có lịch sử."; return; }
+      container.innerHTML = res.data.map(item => `
+        <div class="border rounded-xl p-3 bg-white flex justify-between items-center shadow-sm item-row">
+          <div>
+            <p class="font-bold text-gray-800">${item.hoTen} <span class="text-xs text-gray-500 font-normal">(${item.maTNV})</span></p>
+            <p class="text-[10px] text-blue-600 font-bold">SĐT: ${item.sdt || 'N/A'}</p>
+            <p class="text-[11px] text-gray-500">Duyệt: ${item.thoiGianDuyet} bởi ${item.admin}</p>
+            <button onclick="openEditMC('${item.maMC}', ${item.soBuoi}, '${item.ghiChu || ''}')" 
+                    class="text-[10px] text-blue-600 underline mt-1 font-bold">Sửa minh chứng</button>
+          </div>
+          <div class="text-right flex flex-col items-end">
+            <span class="px-2 py-1 text-[10px] font-bold rounded-full text-white ${item.trangThai === 'Đã duyệt' ? 'bg-green-500' : 'bg-red-500'}">${item.trangThai}</span>
+            <span class="text-xs font-bold text-green-700 mt-1">${item.soBuoi} buổi</span>
+          </div>
+        </div>`).join('');
     }
+  } catch (e) { container.innerHTML = "Lỗi tải dữ liệu."; }
+}
 
     // Hàm tìm kiếm chung cho các trang
 function filterTable(containerId, inputId) {
@@ -374,17 +382,22 @@ function filterTable(containerId, inputId) {
 // Trong hàm loadLichSuMC(), thêm nút này vào template:
 // <button onclick="openEditMC('${item.maMC}', ${item.soBuoi}, '${item.ghiChu}')" class="text-[10px] text-blue-600 underline mt-1">Sửa</button>
 
-// Hàm chỉnh sửa Minh chứng[cite: 10]
+// Hàm mở hộp thoại chỉnh sửa nhanh
 async function openEditMC(maMC, currentBuoi, currentNote) {
-  const newBuoi = prompt("Nhập số buổi mới:", currentBuoi);
-  const newNote = prompt("Nhập lý do điều chỉnh/ghi chú:", currentNote);
-  if (newBuoi !== null) {
+  const newBuoi = prompt("Chỉnh sửa số buổi cộng:", currentBuoi);
+  const newStatus = prompt("Nhập trạng thái mới (Đã duyệt / Từ chối):", "Đã duyệt");
+  const newNote = prompt("Lý do điều chỉnh / Ghi chú mới:", currentNote);
+  
+  if (newBuoi !== null && newStatus !== null) {
     const response = await fetch(API_URL, { 
       method: 'POST', 
-      body: JSON.stringify({ action: 'adminUpdateMinhChung', sessionId, maMC, status: 'Đã duyệt', soBuoi: newBuoi, ghiChu: newNote, adminName }) 
+      body: JSON.stringify({ 
+        action: 'adminUpdateMinhChung', 
+        sessionId, maMC, status: newStatus, soBuoi: newBuoi, ghiChu: newNote, adminName 
+      }) 
     });
     const res = await response.json();
-    if (res.success) { alert("Đã cập nhật!"); loadLichSuMC(); }
+    if (res.success) { alert("Cập nhật MC thành công!"); loadLichSuMC(); }
   }
 }
 
