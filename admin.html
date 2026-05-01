@@ -44,6 +44,9 @@
         <button onclick="switchTab('lichsumc')" id="btn-lichsumc" class="px-4 py-2 text-xs font-bold rounded-lg text-gray-600 hover:bg-gray-100 transition">
           Lịch sử MC
         </button>
+        <button onclick="switchTab('lichsugcn')" id="btn-lichsugcn" class="px-4 py-2 text-xs font-bold rounded-lg text-gray-600 hover:bg-gray-100 transition">
+  Lịch sử GCN
+</button>
       </div>
     </div>
   </div>
@@ -118,10 +121,20 @@
       </div>
     </div>
 
+    <div id="tab-lichsugcn" class="tab-content">
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="bg-gray-50 px-4 py-3 border-b flex flex-col md:flex-row justify-between gap-2">
+      <h2 class="font-bold text-gray-800 text-sm">Lịch sử Duyệt GCN</h2>
+      <input type="text" id="search-gcn" onkeyup="filterTable('listLichSuGCN', 'search-gcn')" placeholder="Tra cứu Mã TNV/SĐT..." class="text-xs border rounded px-2 py-1 outline-none focus:ring-1 ring-blue-500">
+    </div>
+    <div id="listLichSuGCN" class="p-4 space-y-3 text-sm"></div>
+  </div>
+</div>
+
   </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycby96nAGEy-x2aYZ_rtkyoCjnQDb3SgY8SaaK_fHKwyYCat7ssC871lUh4EXPTiyroKP/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbw833zl2KQKvUTws5zjDVcP_x1fsjrR7p0MJXvhCRTKrz8gFBPhEBG-D_LuWguFC_CViQ/exec";
     const sessionId = sessionStorage.getItem('sessionId');
     const adminName = sessionStorage.getItem('adminName') || "Admin";
 
@@ -346,6 +359,55 @@
         }
       } catch (e) {}
     }
+
+    // Hàm tìm kiếm chung cho các trang
+function filterTable(containerId, inputId) {
+  const filter = document.getElementById(inputId).value.toUpperCase();
+  const items = document.getElementById(containerId).getElementsByClassName('item-row');
+  for (let i = 0; i < items.length; i++) {
+    const text = items[i].textContent || items[i].innerText;
+    items[i].style.display = text.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+  }
+}
+
+// Bổ sung nút "Sửa" vào hàm hiển thị Lịch sử MC
+// Trong hàm loadLichSuMC(), thêm nút này vào template:
+// <button onclick="openEditMC('${item.maMC}', ${item.soBuoi}, '${item.ghiChu}')" class="text-[10px] text-blue-600 underline mt-1">Sửa</button>
+
+// Hàm chỉnh sửa Minh chứng[cite: 10]
+async function openEditMC(maMC, currentBuoi, currentNote) {
+  const newBuoi = prompt("Nhập số buổi mới:", currentBuoi);
+  const newNote = prompt("Nhập lý do điều chỉnh/ghi chú:", currentNote);
+  if (newBuoi !== null) {
+    const response = await fetch(API_URL, { 
+      method: 'POST', 
+      body: JSON.stringify({ action: 'adminUpdateMinhChung', sessionId, maMC, status: 'Đã duyệt', soBuoi: newBuoi, ghiChu: newNote, adminName }) 
+    });
+    const res = await response.json();
+    if (res.success) { alert("Đã cập nhật!"); loadLichSuMC(); }
+  }
+}
+
+// Tương tự, bổ sung hàm loadLichSuGCN() và openEditGCN() cho Tab mới[cite: 10, 11]
+async function loadLichSuGCN() {
+  const container = document.getElementById('listLichSuGCN');
+  container.innerHTML = 'Đang tải...';
+  const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getLichSuGCN', sessionId }) });
+  const res = await response.json();
+  if (res.success) {
+    container.innerHTML = res.data.map(item => `
+      <div class="border rounded-xl p-3 bg-white shadow-sm item-row">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="font-bold text-gray-800">${item.hoTen} (${item.maTNV})</p>
+            <p class="text-[10px] text-gray-500">SĐT: ${item.sdt} | Loại: ${item.loaiGCN}</p>
+            <p class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded inline-block mt-1">${item.trangThai}</p>
+          </div>
+          <button onclick="openEditGCN('${item.maYC}')" class="text-[10px] bg-gray-100 px-2 py-1 rounded">Sửa</button>
+        </div>
+      </div>`).join('');
+  }
+}
   </script>
 </body>
 </html>
