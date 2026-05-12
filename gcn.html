@@ -32,6 +32,7 @@
       </div>
       <h2 class="text-gray-400 font-bold text-xs uppercase tracking-widest">Tổng số buổi tích lũy</h2>
       <p id="txtTongBuoi" class="text-5xl font-black text-green-700 mt-2 mb-2">--</p>
+      <div id="txtBuoiTru" class="text-[11px] text-gray-500 mb-2">Đã cộng: -- | Đã trừ: --</div>
       <div id="txtDotHienTai" class="text-[11px] text-blue-600 bg-blue-50 inline-block px-3 py-1.5 rounded-full font-bold border border-blue-100">
         ⏳ Đang tải thông tin đợt xét...
       </div>
@@ -68,7 +69,7 @@
     // ==========================================
     // CẤU HÌNH API
     // ==========================================
-    const API_URL = "https://script.google.com/macros/s/AKfycby96nAGEy-x2aYZ_rtkyoCjnQDb3SgY8SaaK_fHKwyYCat7ssC871lUh4EXPTiyroKP/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbwEITXQcK9qRmrpBFIkdO7pSWDODpAAckltYXGlS0BniW0_C03-6kW8V2rKN1awqU6dEQ/exec"; 
     const sessionId = sessionStorage.getItem('sessionId');
     let currentDot = null; 
 
@@ -109,6 +110,7 @@
           
           // 1. Hiển thị tổng số buổi
           document.getElementById('txtTongBuoi').innerText = data.tongBuoi;
+          document.getElementById('txtBuoiTru').innerText = `Đã cộng: ${data.soBuoiCong || 0} buổi | Đã trừ: ${data.soBuoiTru || 0} buổi`;
           
           // 2. Hiển thị thông tin đợt xét hiện tại
           const dotBox = document.getElementById('txtDotHienTai');
@@ -181,6 +183,7 @@
                 <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">${item.trangThai}</span>
               </div>
               <p class="text-[10px] text-gray-400">Đợt: ${item.dot} | Ngày gửi: ${item.ngayGui}</p>
+              <p class="text-[10px] text-gray-500 mt-1">Tổng buổi lúc gửi: ${item.tongBuoiLucGui ?? '-'}</p>
               
               ${item.ngayHenTra ? `
                 <div class="mt-3 text-[11px] font-bold text-blue-800 bg-blue-50 p-2.5 rounded-lg border border-blue-100 flex items-center gap-2">
