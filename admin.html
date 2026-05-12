@@ -12,6 +12,18 @@
     /* Thanh cuộn ngang ẩn cho menu mobile */
     .menu-scroll { overflow-x: auto; scrollbar-width: none; }
     .menu-scroll::-webkit-scrollbar { display: none; }
+
+    /* Popup xử lý để tránh bấm lặp gây lag */
+    #globalLoadingOverlay { display: none; }
+    #globalLoadingOverlay.active { display: flex; }
+    .admin-btn-disabled { opacity: 0.55; cursor: not-allowed !important; pointer-events: none; }
+    .loading-spinner {
+      width: 36px; height: 36px; border: 4px solid #e5e7eb; border-top-color: #111827;
+      border-radius: 9999px; animation: spinLoading 0.8s linear infinite;
+    }
+    @keyframes spinLoading { to { transform: rotate(360deg); } }
+    #busyToast { display: none; }
+    #busyToast.active { display: block; }
   </style>
 </head>
 <body class="pb-10">
@@ -23,6 +35,23 @@
     </div>
     <button onclick="logout()" class="text-xs bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg font-bold transition shadow">Đăng xuất</button>
   </nav>
+
+
+  <!-- Popup xử lý toàn trang: khóa thao tác khi đang gọi Apps Script -->
+  <div id="globalLoadingOverlay" class="fixed inset-0 bg-black/45 z-[9999] items-center justify-center px-4">
+    <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center border border-gray-200">
+      <div class="loading-spinner mx-auto mb-4"></div>
+      <p id="globalLoadingTitle" class="font-bold text-gray-900 text-base">Đang xử lý...</p>
+      <p id="globalLoadingMessage" class="text-xs text-gray-500 mt-2 leading-relaxed">
+        Vui lòng không bấm nhiều lần. Hệ thống đang ghi nhận dữ liệu lên Google Sheet.
+      </p>
+    </div>
+  </div>
+
+  <div id="busyToast" class="fixed top-20 left-1/2 -translate-x-1/2 z-[10000] bg-yellow-100 text-yellow-900 border border-yellow-300 rounded-xl px-4 py-2 text-xs font-bold shadow-lg">
+    Hệ thống đang xử lý yêu cầu trước, vui lòng chờ.
+  </div>
+
 
   <div class="max-w-5xl mx-auto px-2 pt-20 mb-4">
     <div class="menu-scroll bg-white p-1 rounded-xl shadow-sm border border-gray-200">
@@ -194,9 +223,130 @@
   </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwEITXQcK9qRmrpBFIkdO7pSWDODpAAckltYXGlS0BniW0_C03-6kW8V2rKN1awqU6dEQ/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycby3E8BDLiNKmJviwbfKPACcP9RJNlFlSi-87_oJ04-jKLMGdCDGANjWHlMBh6yURcJARg/exec";
     const sessionId = sessionStorage.getItem('sessionId');
     const adminName = sessionStorage.getItem('adminName') || "Admin";
+
+
+    // ==========================================
+    // CHỐNG BẤM LẶP + POPUP ĐANG XỬ LÝ
+    // ==========================================
+    let __adminApiCalls = 0;
+    let __adminBusy = false;
+    let __busyToastTimer = null;
+    const __nativeFetch = window.fetch.bind(window);
+
+    const ACTION_LOADING_TEXT = {
+      getAdminDashboard: 'Đang tải tổng quan...',
+      getDanhSachMinhChungChoXet: 'Đang tải danh sách minh chứng...',
+      adminDuyetMinhChung: 'Đang duyệt minh chứng...',
+      getDanhSachYeuCauGCN: 'Đang tải yêu cầu GCN...',
+      adminCapGCN: 'Đang xử lý cấp GCN...',
+      getDanhSachNoLinkGCN: 'Đang tải danh sách nợ link GCN...',
+      adminCapNhatLinkGCN: 'Đang cập nhật link GCN...',
+      getLichSuMinhChung: 'Đang tải lịch sử minh chứng...',
+      adminUpdateMinhChung: 'Đang điều chỉnh minh chứng...',
+      getLichSuGCN: 'Đang tải lịch sử GCN...',
+      adminUpdateGCN: 'Đang điều chỉnh GCN...',
+      getDanhSachDiemTruc: 'Đang tải danh sách điểm trực...',
+      traCuuTNVAdmin: 'Đang tra cứu thông tin TNV...',
+      adminThemTruongDiemTruc: 'Đang thêm trưởng điểm trực...',
+      getDanhSachTruongDiemTruc: 'Đang tải lịch sử trưởng điểm...',
+      adminGhiNhanViPham: 'Đang ghi nhận sai phạm...',
+      getLichSuViPham: 'Đang tải lịch sử vi phạm...'
+    };
+
+    function getActionFromFetchOptions(options) {
+      try {
+        const body = options && options.body ? options.body.toString() : '{}';
+        return JSON.parse(body).action || '';
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function setGlobalProcessing(isLoading, message) {
+      const overlay = document.getElementById('globalLoadingOverlay');
+      const title = document.getElementById('globalLoadingTitle');
+      const msg = document.getElementById('globalLoadingMessage');
+      if (!overlay) return;
+
+      if (isLoading) {
+        if (title) title.innerText = message || 'Đang xử lý...';
+        if (msg) msg.innerText = 'Vui lòng không bấm nhiều lần. Hệ thống đang ghi nhận dữ liệu lên Google Sheet.';
+        overlay.classList.add('active');
+      } else {
+        overlay.classList.remove('active');
+      }
+    }
+
+    function setAdminButtonsDisabled(disabled) {
+      document.querySelectorAll('button').forEach(btn => {
+        if (btn.dataset.allowWhileLoading === 'true') return;
+        if (disabled) {
+          if (!btn.disabled) btn.dataset.disabledByLoading = '1';
+          btn.disabled = true;
+          btn.classList.add('admin-btn-disabled');
+        } else if (btn.dataset.disabledByLoading === '1') {
+          btn.disabled = false;
+          delete btn.dataset.disabledByLoading;
+          btn.classList.remove('admin-btn-disabled');
+        }
+      });
+    }
+
+    function beginAdminProcessing(message) {
+      __adminApiCalls++;
+      __adminBusy = true;
+      setAdminButtonsDisabled(true);
+      setGlobalProcessing(true, message || 'Đang xử lý...');
+    }
+
+    function endAdminProcessing() {
+      __adminApiCalls = Math.max(0, __adminApiCalls - 1);
+      if (__adminApiCalls === 0) {
+        __adminBusy = false;
+        setGlobalProcessing(false);
+        setAdminButtonsDisabled(false);
+      }
+    }
+
+    function showBusyToast(message) {
+      const toast = document.getElementById('busyToast');
+      if (!toast) return;
+      toast.innerText = message || 'Hệ thống đang xử lý yêu cầu trước, vui lòng chờ.';
+      toast.classList.add('active');
+      clearTimeout(__busyToastTimer);
+      __busyToastTimer = setTimeout(() => toast.classList.remove('active'), 1800);
+    }
+
+    // Chặn bấm nút mới khi request trước chưa xong.
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('button');
+      if (!btn || btn.dataset.allowWhileLoading === 'true') return;
+      if (__adminBusy) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        showBusyToast('Đang xử lý, vui lòng không bấm nhiều lần.');
+        return false;
+      }
+    }, true);
+
+    // Tự động hiện popup cho mọi request POST lên Apps Script, không cần sửa từng hàm.
+    window.fetch = async function(resource, options = {}) {
+      const url = typeof resource === 'string' ? resource : (resource && resource.url ? resource.url : '');
+      const isAppsScriptApi = url === API_URL || url.includes('script.google.com/macros/s/');
+      if (!isAppsScriptApi) return __nativeFetch(resource, options);
+
+      const action = getActionFromFetchOptions(options);
+      const message = ACTION_LOADING_TEXT[action] || 'Đang xử lý dữ liệu...';
+      beginAdminProcessing(message);
+      try {
+        return await __nativeFetch(resource, options);
+      } finally {
+        endAdminProcessing();
+      }
+    };
 
     if (!sessionId || !sessionId.startsWith("ADMIN_")) {
       alert("Bạn không có quyền truy cập!");
