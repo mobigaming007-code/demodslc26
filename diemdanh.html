@@ -49,7 +49,7 @@
 
   <script>
     // NHỚ DÁN LINK SCRIPT MỚI NHẤT CỦA BẠN VÀO ĐÂY
-    const API_URL = "https://script.google.com/macros/s/AKfycby96nAGEy-x2aYZ_rtkyoCjnQDb3SgY8SaaK_fHKwyYCat7ssC871lUh4EXPTiyroKP/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbwEITXQcK9qRmrpBFIkdO7pSWDODpAAckltYXGlS0BniW0_C03-6kW8V2rKN1awqU6dEQ/exec";
     const sessionId = sessionStorage.getItem('sessionId');
 
     // Chặn người dùng chưa đăng nhập
@@ -196,6 +196,8 @@
                 </div>
                 <div class="text-right">
                   <span class="text-[10px] bg-green-100 text-green-800 font-bold px-2 py-1 rounded-md border border-green-200 whitespace-nowrap">${item.trangThai}</span>
+                  ${Number(item.soBuoiTru || 0) > 0 ? `<p class="text-[10px] text-red-600 font-bold mt-1">Đã trừ: ${item.soBuoiTru} buổi</p>` : ''}
+                  <p class="text-[10px] text-gray-400 mt-1">Còn: ${item.tongBuoiSauTru ?? '-'} buổi</p>
                 </div>
               </div>`;
           });
