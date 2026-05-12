@@ -47,6 +47,12 @@
         <button onclick="switchTab('lichsugcn')" id="btn-lichsugcn" class="px-4 py-2 text-xs font-bold rounded-lg text-gray-600 hover:bg-gray-100 transition">
   Lịch sử GCN
 </button>
+        <button onclick="switchTab('truongdiem')" id="btn-truongdiem" class="px-4 py-2 text-xs font-bold rounded-lg text-gray-600 hover:bg-gray-100 transition">
+          Trưởng điểm
+        </button>
+        <button onclick="switchTab('vipham')" id="btn-vipham" class="px-4 py-2 text-xs font-bold rounded-lg text-gray-600 hover:bg-gray-100 transition">
+          Ghi nhận sai phạm
+        </button>
       </div>
     </div>
   </div>
@@ -134,10 +140,61 @@
   </div>
 </div>
 
+
+    <div id="tab-truongdiem" class="tab-content">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-green-50 px-4 py-3 border-b border-green-100 flex justify-between">
+          <h2 class="font-bold text-green-800 text-sm">Thêm trưởng điểm trực tại từng điểm</h2>
+          <button onclick="loadTruongDiem()" class="text-xs text-blue-600 underline">Làm mới</button>
+        </div>
+        <div class="p-4 space-y-4 text-sm">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+            <input id="td-ma" class="border p-2 rounded text-xs" placeholder="Nhập mã TNV hoặc SĐT">
+            <button onclick="traCuuTruongDiem()" class="bg-gray-900 text-white font-bold rounded text-xs px-3 py-2">Tra cứu</button>
+            <input id="td-date" type="date" class="border p-2 rounded text-xs">
+            <select id="td-buoi" class="border p-2 rounded text-xs">
+              <option value="Sáng">Sáng</option>
+              <option value="Chiều">Chiều</option>
+            </select>
+          </div>
+          <div id="td-info" class="hidden bg-gray-50 border rounded-xl p-3"></div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <select id="td-diem" class="border p-2 rounded text-xs md:col-span-2"><option value="">Đang tải điểm...</option></select>
+            <button onclick="submitTruongDiem()" class="bg-green-700 text-white font-bold rounded text-xs px-3 py-2">Thêm trưởng điểm</button>
+          </div>
+          <div id="listTruongDiem" class="space-y-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-vipham" class="tab-content">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-red-50 px-4 py-3 border-b border-red-100 flex justify-between">
+          <h2 class="font-bold text-red-800 text-sm">Ghi nhận sai phạm TNV</h2>
+          <button onclick="loadViPham()" class="text-xs text-blue-600 underline">Làm mới</button>
+        </div>
+        <div class="p-4 space-y-4 text-sm">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+            <input id="vp-ma" class="border p-2 rounded text-xs" placeholder="Nhập mã TNV hoặc SĐT">
+            <button onclick="traCuuViPham()" class="bg-gray-900 text-white font-bold rounded text-xs px-3 py-2">Tra cứu</button>
+          </div>
+          <div id="vp-info" class="hidden bg-gray-50 border rounded-xl p-3"></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <textarea id="vp-noidung" class="border p-2 rounded text-xs md:col-span-2" rows="3" placeholder="Nội dung vi phạm"></textarea>
+            <input id="vp-quyetdinh" class="border p-2 rounded text-xs" placeholder="Quyết định xử phạt">
+            <input id="vp-link" class="border p-2 rounded text-xs" placeholder="Link thông báo / quyết định">
+            <input id="vp-tru" type="number" step="0.5" min="0" class="border p-2 rounded text-xs" placeholder="Số buổi trừ">
+            <button onclick="submitViPham()" class="bg-red-700 text-white font-bold rounded text-xs px-3 py-2">Ghi nhận sai phạm</button>
+          </div>
+          <div id="listViPham" class="space-y-2"></div>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycby3E8BDLiNKmJviwbfKPACcP9RJNlFlSi-87_oJ04-jKLMGdCDGANjWHlMBh6yURcJARg/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbwEITXQcK9qRmrpBFIkdO7pSWDODpAAckltYXGlS0BniW0_C03-6kW8V2rKN1awqU6dEQ/exec";
     const sessionId = sessionStorage.getItem('sessionId');
     const adminName = sessionStorage.getItem('adminName') || "Admin";
 
@@ -153,6 +210,7 @@
       loadMinhChung(true); 
       loadGCN(true);
       loadNoLink(true);
+      loadDiemTrucOptions();
     };
 
     function logout() {
@@ -177,6 +235,8 @@
       if (tabId === 'nolink') loadNoLink();
       if (tabId === 'lichsumc') loadLichSuMC();
       if (tabId === 'lichsugcn') loadLichSuGCN();
+      if (tabId === 'truongdiem') { loadDiemTrucOptions(); loadTruongDiem(); }
+      if (tabId === 'vipham') loadViPham();
     }
 
     function updateBadge(id, count) {
@@ -275,9 +335,10 @@
               <div class="flex justify-between">
                 <p class="font-bold">${item.hoTen} (${item.maTNV})</p> 
                 <p class="text-xs text-blue-600 font-bold mt-1">📞 SĐT: ${item.sdt}</p>
-                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded font-bold">${item.tongBuoi} buổi</span>
+                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded font-bold">${item.tongBuoiHienTai ?? item.tongBuoi} buổi</span>
               </div>
               <p class="text-sm">Loại: <b>${item.loaiGCN}</b> (Đợt ${item.dot})</p>
+              ${Number(item.soBuoiTru || 0) > 0 ? `<p class="text-[11px] text-red-600 font-bold">Đã trừ vi phạm: ${item.soBuoiTru} buổi</p>` : ''}
               <div class="mt-2 grid grid-cols-2 gap-2">
                 <input type="text" id="ngayhen-${item.maYC}" placeholder="Ngày hẹn trả" class="border p-2 rounded">
                 <input type="text" id="url-${item.maYC}" placeholder="Link GCN" class="border p-2 rounded">
@@ -359,6 +420,7 @@
             <p class="text-[11px] text-gray-500">Duyệt: ${item.thoiGianDuyet} bởi ${item.admin}</p>
             <button onclick="openEditMC('${item.maMC}', ${item.soBuoi}, '${item.ghiChu || ''}')" 
                     class="text-[10px] text-blue-600 underline mt-1 font-bold">Sửa minh chứng</button>
+            ${item.anhUrl ? `<a href="${item.anhUrl}" target="_blank" class="ml-2 text-[10px] text-green-600 underline font-bold">Xem hình ảnh</a>` : ''}
           </div>
           <div class="text-right flex flex-col items-end">
             <span class="px-2 py-1 text-[10px] font-bold rounded-full text-white ${item.trangThai === 'Đã duyệt' ? 'bg-green-500' : 'bg-red-500'}">${item.trangThai}</span>
@@ -430,6 +492,7 @@ async function loadLichSuGCN() {
             <p class="text-[10px] text-blue-600 font-medium">Loại: ${item.loaiGCN} - Hẹn: ${item.ngayHenTra}</p>
             <button onclick="openEditGCN('${item.maYC}', '${item.trangThai}', '${item.ghiChu || ''}')" 
                     class="text-[10px] text-blue-600 underline mt-1 font-bold">Điều chỉnh GCN</button>
+            ${item.gcnUrl ? `<a href="${item.gcnUrl}" target="_blank" class="ml-2 text-[10px] text-green-600 underline font-bold">Xem GCN</a>` : ''}
           </div>
           <div class="text-right flex flex-col items-end">
             <span class="px-2 py-0.5 text-[9px] font-bold rounded-full text-white 
@@ -485,6 +548,117 @@ async function openEditGCN(maYC, currentStatus, currentNote) {
     alert("Lỗi kết nối server: " + e.message);
   }
 }
+
+
+    // --- TAB TRƯỞNG ĐIỂM ---
+    let selectedTruongDiemTNV = null;
+    let selectedViPhamTNV = null;
+
+    async function loadDiemTrucOptions() {
+      const sel = document.getElementById('td-diem');
+      if (!sel) return;
+      try {
+        const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getDanhSachDiemTruc', sessionId }) });
+        const res = await response.json();
+        if (res.success) {
+          sel.innerHTML = res.data.map(d => `<option value="${d.value}">${d.label}</option>`).join('') || '<option value="">Chưa có điểm</option>';
+        }
+      } catch(e) { sel.innerHTML = '<option value="">Lỗi tải điểm</option>'; }
+    }
+
+    async function traCuuTruongDiem() {
+      const keyword = document.getElementById('td-ma').value.trim();
+      if (!keyword) return alert('Nhập mã TNV hoặc SĐT');
+      const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'traCuuTNVAdmin', sessionId, keyword }) });
+      const res = await response.json();
+      if (!res.success) return alert(res.error);
+      selectedTruongDiemTNV = res.data;
+      document.getElementById('td-info').classList.remove('hidden');
+      document.getElementById('td-info').innerHTML = `<b>${res.data.hoTen}</b> (${res.data.maTNV})<br><span class="text-xs text-blue-600">SĐT: ${res.data.sdt || 'N/A'} | Đã cộng: ${res.data.soBuoiCong} | Đã trừ: ${res.data.soBuoiTru} | Còn: ${res.data.tongBuoi}</span>`;
+    }
+
+    async function submitTruongDiem() {
+      if (!selectedTruongDiemTNV) return alert('Vui lòng tra cứu TNV trước');
+      const ngayTruc = document.getElementById('td-date').value;
+      const buoi = document.getElementById('td-buoi').value;
+      const diemTruc = document.getElementById('td-diem').value;
+      if (!ngayTruc || !buoi || !diemTruc) return alert('Chọn đủ ngày, buổi, điểm trực');
+      const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'adminThemTruongDiemTruc', sessionId, maTNV: selectedTruongDiemTNV.maTNV, ngayTruc, buoi, diemTruc, adminName }) });
+      const res = await response.json();
+      if (res.success) { alert('Đã thêm trưởng điểm trực'); loadTruongDiem(); } else alert(res.error);
+    }
+
+    async function loadTruongDiem() {
+      const box = document.getElementById('listTruongDiem');
+      if (!box) return;
+      box.innerHTML = '<p class="text-xs text-gray-400">Đang tải danh sách...</p>';
+      try {
+        const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getDanhSachTruongDiemTruc', sessionId }) });
+        const res = await response.json();
+        if (res.success) {
+          if (res.data.length === 0) { box.innerHTML = '<p class="text-xs text-gray-400 italic">Chưa có trưởng điểm trực.</p>'; return; }
+          box.innerHTML = res.data.map(x => `
+            <div class="border rounded-xl p-3 bg-white item-row">
+              <p class="font-bold text-gray-800">${x.hoTen} <span class="text-xs text-gray-500">(${x.maTNV})</span></p>
+              <p class="text-[11px] text-gray-500">${x.thu}, ${x.ngayTruc} | ${x.buoi} | Điểm: ${x.diemTruc}</p>
+              <p class="text-[10px] text-gray-400">Tạo bởi: ${x.admin} | ${x.trangThai}</p>
+            </div>`).join('');
+        } else box.innerHTML = `<p class="text-xs text-red-500">${res.error}</p>`;
+      } catch(e) { box.innerHTML = '<p class="text-xs text-red-500">Lỗi tải dữ liệu.</p>'; }
+    }
+
+    // --- TAB VI PHẠM ---
+    async function traCuuViPham() {
+      const keyword = document.getElementById('vp-ma').value.trim();
+      if (!keyword) return alert('Nhập mã TNV hoặc SĐT');
+      const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'traCuuTNVAdmin', sessionId, keyword }) });
+      const res = await response.json();
+      if (!res.success) return alert(res.error);
+      selectedViPhamTNV = res.data;
+      document.getElementById('vp-info').classList.remove('hidden');
+      document.getElementById('vp-info').innerHTML = `<b>${res.data.hoTen}</b> (${res.data.maTNV})<br><span class="text-xs text-blue-600">SĐT: ${res.data.sdt || 'N/A'} | Đã cộng: ${res.data.soBuoiCong} | Đã trừ: ${res.data.soBuoiTru} | Còn: ${res.data.tongBuoi}</span>`;
+    }
+
+    async function submitViPham() {
+      if (!selectedViPhamTNV) return alert('Vui lòng tra cứu TNV trước');
+      const thongTinViPham = document.getElementById('vp-noidung').value.trim();
+      const quyetDinhXuPhat = document.getElementById('vp-quyetdinh').value.trim();
+      const linkQuyetDinhXuPhat = document.getElementById('vp-link').value.trim();
+      const soBuoiTru = parseFloat(document.getElementById('vp-tru').value) || 0;
+      if (!thongTinViPham) return alert('Nhập nội dung vi phạm');
+      const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'adminGhiNhanViPham', sessionId, maTNV: selectedViPhamTNV.maTNV, thongTinViPham, quyetDinhXuPhat, linkQuyetDinhXuPhat, soBuoiTru, adminName }) });
+      const res = await response.json();
+      if (res.success) {
+        alert('Đã ghi nhận sai phạm');
+        document.getElementById('vp-noidung').value = '';
+        document.getElementById('vp-quyetdinh').value = '';
+        document.getElementById('vp-link').value = '';
+        document.getElementById('vp-tru').value = '';
+        loadViPham();
+      } else alert(res.error);
+    }
+
+    async function loadViPham() {
+      const box = document.getElementById('listViPham');
+      if (!box) return;
+      box.innerHTML = '<p class="text-xs text-gray-400">Đang tải lịch sử vi phạm...</p>';
+      try {
+        const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getLichSuViPham', sessionId }) });
+        const res = await response.json();
+        if (res.success) {
+          if (res.data.length === 0) { box.innerHTML = '<p class="text-xs text-gray-400 italic">Chưa có vi phạm.</p>'; return; }
+          box.innerHTML = res.data.map(x => `
+            <div class="border border-red-100 rounded-xl p-3 bg-white item-row">
+              <p class="font-bold text-gray-800">${x.hoTen} <span class="text-xs text-gray-500">(${x.maTNV})</span></p>
+              <p class="text-[11px] text-red-600 font-bold">Trừ: ${x.soBuoiTru} buổi | ${x.quyetDinhXuPhat || 'Chưa có quyết định'}</p>
+              <p class="text-[11px] text-gray-600 mt-1">${x.thongTinViPham}</p>
+              ${x.linkQuyetDinhXuPhat ? `<a href="${x.linkQuyetDinhXuPhat}" target="_blank" class="text-[10px] text-blue-600 underline">Xem quyết định</a>` : ''}
+              <p class="text-[10px] text-gray-400 mt-1">${x.thoiGian} | ${x.admin}</p>
+            </div>`).join('');
+        } else box.innerHTML = `<p class="text-xs text-red-500">${res.error}</p>`;
+      } catch(e) { box.innerHTML = '<p class="text-xs text-red-500">Lỗi tải dữ liệu.</p>'; }
+    }
+
   </script>
 </body>
 </html>
