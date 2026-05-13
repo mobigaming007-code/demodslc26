@@ -104,7 +104,7 @@
     let compressedBase64 = null; 
 
     // Chặn nếu chưa đăng nhập
-    if(!sessionId) window.location.href = 'index.html';
+    if(!sessionId) window.location.href = '/';
 
     // Tự động tải lịch sử
     window.onload = loadHistory;
@@ -112,7 +112,7 @@
     function logout() {
       if(confirm("Bạn có chắc chắn muốn đăng xuất?")) { 
         sessionStorage.clear(); 
-        window.location.href = 'index.html'; 
+        window.location.href = '/'; 
       }
     }
 
