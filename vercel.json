@@ -20,5 +20,32 @@
       "source": "/gcn",
       "destination": "/gcn.html"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/admin.html",
+      "destination": "/admin",
+      "permanent": true
+    },
+    {
+      "source": "/diemdanh.html",
+      "destination": "/diemdanh",
+      "permanent": true
+    },
+    {
+      "source": "/minhchung.html",
+      "destination": "/minhchung",
+      "permanent": true
+    },
+    {
+      "source": "/gcn.html",
+      "destination": "/gcn",
+      "permanent": true
+    },
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    }
   ]
 }
