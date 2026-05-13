@@ -43,7 +43,7 @@
       <div class="loading-spinner mx-auto mb-4"></div>
       <p id="globalLoadingTitle" class="font-bold text-gray-900 text-base">Đang xử lý...</p>
       <p id="globalLoadingMessage" class="text-xs text-gray-500 mt-2 leading-relaxed">
-        Vui lòng không thực hiện thao tác nhiều lần. Hệ thống đang ghi nhận dữ liệu.
+        Vui lòng không bấm nhiều lần. Hệ thống đang ghi nhận dữ liệu lên Google Sheet.
       </p>
     </div>
   </div>
@@ -223,7 +223,7 @@
   </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwEITXQcK9qRmrpBFIkdO7pSWDODpAAckltYXGlS0BniW0_C03-6kW8V2rKN1awqU6dEQ/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbx3UYjrq0Bcm4Nn-KjXkUteDp65MGajuYWmE-0Mzyo5_dgCayT9P18EWMOP4hR8lEpf5A/exec";
     const sessionId = sessionStorage.getItem('sessionId');
     const adminName = sessionStorage.getItem('adminName') || "Admin";
 
@@ -252,8 +252,10 @@
       traCuuTNVAdmin: 'Đang tra cứu thông tin TNV...',
       adminThemTruongDiemTruc: 'Đang thêm trưởng điểm trực...',
       getDanhSachTruongDiemTruc: 'Đang tải lịch sử trưởng điểm...',
+      adminXoaTruongDiemTruc: 'Đang xóa phân công trưởng điểm...',
       adminGhiNhanViPham: 'Đang ghi nhận sai phạm...',
-      getLichSuViPham: 'Đang tải lịch sử vi phạm...'
+      getLichSuViPham: 'Đang tải lịch sử vi phạm...',
+      adminXoaViPham: 'Đang xóa ghi nhận sai phạm...'
     };
 
     function getActionFromFetchOptions(options) {
@@ -273,7 +275,7 @@
 
       if (isLoading) {
         if (title) title.innerText = message || 'Đang xử lý...';
-        if (msg) msg.innerText = 'Vui lòng không thực hiện thao tác nhiều lần. Hệ thống đang ghi nhận dữ liệu.';
+        if (msg) msg.innerText = 'Vui lòng không bấm nhiều lần. Hệ thống đang ghi nhận dữ liệu lên Google Sheet.';
         overlay.classList.add('active');
       } else {
         overlay.classList.remove('active');
@@ -350,7 +352,7 @@
 
     if (!sessionId || !sessionId.startsWith("ADMIN_")) {
       alert("Bạn không có quyền truy cập!");
-      window.location.href = "/";
+      window.location.href = "index.html";
     }
 
     document.getElementById('adminNameDisplay').innerText = "Chào, " + adminName;
@@ -364,7 +366,7 @@
     };
 
     function logout() {
-      if(confirm("Đăng xuất?")) { sessionStorage.clear(); window.location.href = '/'; }
+      if(confirm("Đăng xuất?")) { sessionStorage.clear(); window.location.href = 'index.html'; }
     }
 
     function switchTab(tabId) {
@@ -749,13 +751,31 @@ async function openEditGCN(maYC, currentStatus, currentNote) {
           if (res.data.length === 0) { box.innerHTML = '<p class="text-xs text-gray-400 italic">Chưa có trưởng điểm trực.</p>'; return; }
           box.innerHTML = res.data.map(x => `
             <div class="border rounded-xl p-3 bg-white item-row">
-              <p class="font-bold text-gray-800">${x.hoTen} <span class="text-xs text-gray-500">(${x.maTNV})</span></p>
-              <p class="text-[11px] text-gray-500">${x.thu}, ${x.ngayTruc} | ${x.buoi} | Điểm: ${x.diemTruc}</p>
-              <p class="text-[10px] text-gray-400">Tạo bởi: ${x.admin} | ${x.trangThai}</p>
+              <div class="flex justify-between gap-3 items-start">
+                <div class="min-w-0">
+                  <p class="font-bold text-gray-800">${x.hoTen} <span class="text-xs text-gray-500">(${x.maTNV})</span></p>
+                  <p class="text-[11px] text-gray-500">${x.thu}, ${x.ngayTruc} | ${x.buoi} | Điểm: ${x.diemTruc}</p>
+                  <p class="text-[10px] text-gray-400">Tạo bởi: ${x.admin} | ${x.trangThai}</p>
+                </div>
+                <button onclick="deleteTruongDiem(${x.rowNumber}, '${String(x.maTNV || '').replace(/'/g, "\'")}')" class="shrink-0 bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 font-bold rounded-lg text-[10px] px-3 py-1.5">Xóa</button>
+              </div>
             </div>`).join('');
         } else box.innerHTML = `<p class="text-xs text-red-500">${res.error}</p>`;
       } catch(e) { box.innerHTML = '<p class="text-xs text-red-500">Lỗi tải dữ liệu.</p>'; }
     }
+
+    async function deleteTruongDiem(rowNumber, maTNV) {
+      if (!rowNumber) return alert('Không xác định được dòng cần xóa');
+      if (!confirm(`Xóa phân công trưởng điểm của ${maTNV}?
+Thao tác này sẽ xóa khỏi sheet TruongDiemTruc.`)) return;
+      const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'adminXoaTruongDiemTruc', sessionId, rowNumber, maTNV, adminName }) });
+      const res = await response.json();
+      if (res.success) {
+        alert('Đã xóa phân công trưởng điểm');
+        loadTruongDiem();
+      } else alert(res.error || 'Không xóa được phân công trưởng điểm');
+    }
+
 
     // --- TAB VI PHẠM ---
     async function traCuuViPham() {
@@ -799,15 +819,33 @@ async function openEditGCN(maYC, currentStatus, currentNote) {
           if (res.data.length === 0) { box.innerHTML = '<p class="text-xs text-gray-400 italic">Chưa có vi phạm.</p>'; return; }
           box.innerHTML = res.data.map(x => `
             <div class="border border-red-100 rounded-xl p-3 bg-white item-row">
-              <p class="font-bold text-gray-800">${x.hoTen} <span class="text-xs text-gray-500">(${x.maTNV})</span></p>
-              <p class="text-[11px] text-red-600 font-bold">Trừ: ${x.soBuoiTru} buổi | ${x.quyetDinhXuPhat || 'Chưa có quyết định'}</p>
-              <p class="text-[11px] text-gray-600 mt-1">${x.thongTinViPham}</p>
-              ${x.linkQuyetDinhXuPhat ? `<a href="${x.linkQuyetDinhXuPhat}" target="_blank" class="text-[10px] text-blue-600 underline">Xem quyết định</a>` : ''}
-              <p class="text-[10px] text-gray-400 mt-1">${x.thoiGian} | ${x.admin}</p>
+              <div class="flex justify-between gap-3 items-start">
+                <div class="min-w-0">
+                  <p class="font-bold text-gray-800">${x.hoTen} <span class="text-xs text-gray-500">(${x.maTNV})</span></p>
+                  <p class="text-[11px] text-red-600 font-bold">Trừ: ${x.soBuoiTru} buổi | ${x.quyetDinhXuPhat || 'Chưa có quyết định'}</p>
+                  <p class="text-[11px] text-gray-600 mt-1">${x.thongTinViPham}</p>
+                  ${x.linkQuyetDinhXuPhat ? `<a href="${x.linkQuyetDinhXuPhat}" target="_blank" class="text-[10px] text-blue-600 underline">Xem quyết định</a>` : ''}
+                  <p class="text-[10px] text-gray-400 mt-1">${x.thoiGian} | ${x.admin}</p>
+                </div>
+                <button onclick="deleteViPham(${x.rowNumber}, '${String(x.maTNV || '').replace(/'/g, "\'")}')" class="shrink-0 bg-red-600 text-white hover:bg-red-700 font-bold rounded-lg text-[10px] px-3 py-1.5">Xóa</button>
+              </div>
             </div>`).join('');
         } else box.innerHTML = `<p class="text-xs text-red-500">${res.error}</p>`;
       } catch(e) { box.innerHTML = '<p class="text-xs text-red-500">Lỗi tải dữ liệu.</p>'; }
     }
+
+    async function deleteViPham(rowNumber, maTNV) {
+      if (!rowNumber) return alert('Không xác định được dòng cần xóa');
+      if (!confirm(`Xóa ghi nhận sai phạm của ${maTNV}?
+Số buổi trừ của bản ghi này sẽ không còn được tính.`)) return;
+      const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'adminXoaViPham', sessionId, rowNumber, maTNV, adminName }) });
+      const res = await response.json();
+      if (res.success) {
+        alert('Đã xóa ghi nhận sai phạm');
+        loadViPham();
+      } else alert(res.error || 'Không xóa được ghi nhận sai phạm');
+    }
+
 
   </script>
 </body>
