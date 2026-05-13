@@ -43,7 +43,7 @@
       <div class="loading-spinner mx-auto mb-4"></div>
       <p id="globalLoadingTitle" class="font-bold text-gray-900 text-base">Đang xử lý...</p>
       <p id="globalLoadingMessage" class="text-xs text-gray-500 mt-2 leading-relaxed">
-        Vui lòng không bấm nhiều lần. Hệ thống đang ghi nhận dữ liệu.
+        Vui lòng không thực hiện thao tác nhiều lần. Hệ thống đang ghi nhận dữ liệu.
       </p>
     </div>
   </div>
@@ -273,7 +273,7 @@
 
       if (isLoading) {
         if (title) title.innerText = message || 'Đang xử lý...';
-        if (msg) msg.innerText = 'Vui lòng không bấm nhiều lần. Hệ thống đang ghi nhận dữ liệu.';
+        if (msg) msg.innerText = 'Vui lòng không thực hiện thao tác nhiều lần. Hệ thống đang ghi nhận dữ liệu.';
         overlay.classList.add('active');
       } else {
         overlay.classList.remove('active');
