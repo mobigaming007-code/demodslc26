@@ -1,224 +1,246 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Điểm danh TNV</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Điểm Danh - DSLC 2026</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style> body { font-family: 'Roboto', sans-serif; } </style>
 </head>
 <body class="bg-gray-100 pb-10">
 
   <nav class="bg-green-800 text-white p-4 shadow-md fixed w-full top-0 z-50 flex justify-between items-center">
-    <h1 class="font-bold text-lg">Đổi sách lấy cây</h1>
+    <h1 class="font-bold text-lg">Đổi sách lấy cây năm 2026</h1>
     <button onclick="logout()" class="text-xs bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg font-bold transition shadow">Đăng xuất</button>
   </nav>
 
   <div class="max-w-md mx-auto px-4 pt-20">
     <div class="flex space-x-1 bg-white p-1 rounded-xl shadow-sm border border-gray-100">
-      <a href="/diemdanh" class="flex-1 text-center py-2.5 text-xs font-bold rounded-lg bg-green-100 text-green-700 transition">Điểm danh</a>
+      <a href="/diemdanh" class="flex-1 text-center py-2.5 text-xs font-bold rounded-lg bg-green-700 text-white shadow-sm">Điểm danh</a>
       <a href="/minhchung" class="flex-1 text-center py-2.5 text-xs font-bold rounded-lg text-gray-500 hover:bg-gray-50 transition">Minh chứng</a>
       <a href="/gcn" class="flex-1 text-center py-2.5 text-xs font-bold rounded-lg text-gray-500 hover:bg-gray-50 transition">Nhận GCN</a>
     </div>
   </div>
 
   <main class="max-w-md mx-auto p-4 mt-2 space-y-5">
-
-    <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-      <p class="text-xs text-gray-400 font-bold uppercase">Thông tin TNV</p>
-      <h2 id="txtName" class="text-xl font-black text-gray-800 mt-1">Đang tải...</h2>
-      <p id="txtMaTNV" class="text-sm text-green-700 font-bold"></p>
-    </section>
-
-    <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
-      <div>
-        <p class="text-xs text-gray-400 font-bold uppercase">Điểm danh</p>
-        <p class="text-sm text-gray-600 mt-1">Quét hoặc nhập mã QR điểm trực để check-in/check-out.</p>
+    
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-center">
+      <h2 class="font-bold text-green-800 text-lg mb-2">Quét mã QR Điểm danh</h2>
+      <p class="text-xs text-gray-500 mb-4">Đưa camera vào sát mã QR do Trưởng ca cung cấp để ghi nhận.</p>
+      
+      <div id="reader" class="rounded-xl overflow-hidden shadow-inner bg-black w-full aspect-square relative"></div>
+      
+      <div id="result" class="hidden p-4 rounded-xl shadow-sm text-center font-bold text-sm border mt-4"></div>
+    </div>
+    
+    <div>
+      <div class="flex justify-between items-end mb-3">
+        <h3 class="font-bold text-gray-800">Lịch sử hôm nay</h3>
+        <button onclick="loadHistory()" class="text-xs text-blue-600 underline font-medium hover:text-blue-800">Làm mới</button>
       </div>
-
-      <input id="qrInput" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="Nhập mã QR / mã điểm trực" />
-
-      <div class="grid grid-cols-2 gap-2">
-        <button onclick="submitDiemDanh('CHECKIN')" class="bg-green-700 hover:bg-green-800 text-white font-bold rounded-xl py-3 text-sm shadow-sm">
-          Check-in
-        </button>
-        <button onclick="submitDiemDanh('CHECKOUT')" class="bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl py-3 text-sm shadow-sm">
-          Check-out
-        </button>
+      <div id="listHistory" class="space-y-3">
+        <p class="text-center text-gray-500 bg-white p-4 rounded-xl shadow-sm text-sm border italic">Đang tải dữ liệu...</p>
       </div>
-
-      <p id="msgBox" class="hidden text-sm font-bold rounded-xl p-3"></p>
-    </section>
-
-    <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-      <div class="flex items-center justify-between mb-3">
-        <div>
-          <p class="text-xs text-gray-400 font-bold uppercase">Lịch sử điểm danh</p>
-          <p class="text-[11px] text-gray-400 mt-1">Hiển thị cả check-in chưa check-out.</p>
-        </div>
-        <button onclick="loadHistory()" class="text-xs text-green-700 font-bold underline">Làm mới</button>
-      </div>
-
-      <div id="historyList" class="space-y-3">
-        <p class="text-xs text-gray-400 italic">Đang tải lịch sử điểm danh...</p>
-      </div>
-    </section>
+    </div>
 
   </main>
 
   <script>
+    // NHỚ DÁN LINK SCRIPT MỚI NHẤT CỦA BẠN VÀO ĐÂY
     const API_URL = "https://script.google.com/macros/s/AKfycbyRuxAmBxOL_sz4FbzTIVP6tQou0g-33nNXkcZI9juHwar_wQz2N-KzK-hXdwaulQwQDg/exec";
-    const sessionId = sessionStorage.getItem("sessionId") || localStorage.getItem("sessionId") || "";
+    const sessionId = sessionStorage.getItem('sessionId');
 
-    if (!sessionId) {
-      alert("Vui lòng đăng nhập lại.");
-      window.location.href = "/";
-    }
+    // Chặn người dùng chưa đăng nhập
+    if(!sessionId) window.location.href = '/';
 
-    window.onload = function () {
-      loadTNVInfo();
-      loadHistory();
-    };
+    // Tự động tải lịch sử khi vừa vào trang
+    window.onload = loadHistory;
 
     function logout() {
-      sessionStorage.clear();
-      localStorage.clear();
-      window.location.href = "/";
-    }
-
-    function showMessage(type, text) {
-      const box = document.getElementById("msgBox");
-      box.classList.remove("hidden", "bg-green-50", "text-green-700", "bg-red-50", "text-red-700", "bg-yellow-50", "text-yellow-700");
-
-      if (type === "success") box.classList.add("bg-green-50", "text-green-700");
-      else if (type === "warning") box.classList.add("bg-yellow-50", "text-yellow-700");
-      else box.classList.add("bg-red-50", "text-red-700");
-
-      box.innerText = text;
-    }
-
-    async function callApi(payload) {
-      const response = await fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
-      return await response.json();
-    }
-
-    async function loadTNVInfo() {
-      try {
-        const res = await callApi({ action: "getTNVInfoClient", sessionId });
-        if (res.success && res.data) {
-          document.getElementById("txtName").innerText = res.data.hoTen || "Tình nguyện viên";
-          document.getElementById("txtMaTNV").innerText = res.data.maTNV || "";
-        }
-      } catch (err) {
-        document.getElementById("txtName").innerText = "Tình nguyện viên";
+      if(confirm("Đăng xuất khỏi tài khoản?")) {
+        sessionStorage.clear();
+        window.location.href = '/';
       }
     }
 
-    async function submitDiemDanh(loai) {
-      const qrCode = document.getElementById("qrInput").value.trim();
-      if (!qrCode) {
-        showMessage("warning", "Vui lòng nhập hoặc quét mã QR điểm danh.");
-        return;
+    // ==========================================
+    // 1. GỌI CAMERA QUÉT QR
+    // ==========================================
+    const html5QrCode = new Html5Qrcode("reader");
+    
+    html5QrCode.start(
+      { facingMode: "environment" }, // Ưu tiên dùng camera sau của điện thoại
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      (decodedText) => {
+        html5QrCode.pause(true); // Tạm dừng camera sau khi quét trúng
+        handleDiemDanh(decodedText);
       }
+    ).catch(err => {
+      // Bắt lỗi nếu trình duyệt chặn Camera
+      const resBox = document.getElementById('result');
+      resBox.classList.remove('hidden');
+      resBox.innerHTML = "❌ Không thể mở Camera!<br><span class='text-xs font-normal mt-1 block'>Hãy kiểm tra lại quyền truy cập Máy ảnh (Camera) của trình duyệt.</span>";
+      resBox.className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
+      console.error("Lỗi khởi tạo Camera: ", err);
+    });
 
-      try {
-        showMessage("warning", "Đang ghi nhận điểm danh...");
+    // ==========================================
+    // 2. LẤY GPS VÀ CHUẨN BỊ GỬI
+    // ==========================================
+    async function handleDiemDanh(qrData) {
+      const resBox = document.getElementById('result');
+      resBox.classList.remove('hidden');
+      resBox.innerText = "📍 Đang lấy vị trí GPS hiện tại...";
+      resBox.className = "p-4 bg-blue-100 text-blue-800 rounded-xl shadow-sm text-center font-bold text-sm border border-blue-200 mt-4";
 
-        const res = await callApi({
-          action: "submitDiemDanh",
-          sessionId,
-          qrCode,
-          loai
-        });
-
-        if (res.success) {
-          showMessage("success", res.message || "Điểm danh thành công.");
-          document.getElementById("qrInput").value = "";
-          await loadHistory();
-        } else {
-          showMessage("error", res.error || "Không thể điểm danh.");
-        }
-      } catch (err) {
-        showMessage("error", "Lỗi kết nối hệ thống điểm danh.");
+      // Kiểm tra xem trình duyệt có hỗ trợ GPS không
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          // Nếu người dùng cho phép lấy vị trí
+          async (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            sendDataToServer(qrData, lat, lng);
+          },
+          // Nếu bị lỗi (tắt định vị, từ chối cấp quyền)
+          (error) => {
+            resBox.innerHTML = "❌ Không lấy được vị trí GPS.<br><span class='text-xs font-normal mt-1 block'>Hãy bật Định vị (Location) trên điện thoại và tải lại trang!</span>";
+            resBox.className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
+            setTimeout(() => { resBox.classList.add('hidden'); html5QrCode.resume(); }, 4000);
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 } // Ép lấy tọa độ chính xác cao
+        );
+      } else {
+        resBox.innerText = "❌ Trình duyệt/Điện thoại của bạn không hỗ trợ tính năng định vị!";
+        resBox.className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
+        setTimeout(() => { resBox.classList.add('hidden'); html5QrCode.resume(); }, 4000);
       }
     }
 
-    async function loadHistory() {
-      const box =
-        document.getElementById("historyList") ||
-        document.getElementById("historyBox") ||
-        document.getElementById("lichSuDiemDanh");
-
-      if (!box) return;
-
-      box.innerHTML = `<p class="text-xs text-gray-400 italic">Đang tải lịch sử điểm danh...</p>`;
+    // ==========================================
+    // 3. GỬI DỮ LIỆU ĐIỂM DANH LÊN MÁY CHỦ
+    // ==========================================
+    async function sendDataToServer(qrData, lat, lng) {
+      const resBox = document.getElementById('result');
+      resBox.innerText = "⏳ Đang đối chiếu vị trí với hệ thống...";
 
       try {
         const response = await fetch(API_URL, {
-          method: "POST",
-          body: JSON.stringify({
-            action: "getLichSuDiemDanhTNV",
-            sessionId
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ 
+            action: 'diemDanhTNV', 
+            sessionId: sessionId, 
+            qrCode: qrData,
+            lat: lat,
+            lng: lng,
+            userAgent: navigator.userAgent // Fix lỗi undefined trên Sheet
           })
         });
-
         const res = await response.json();
-
-        if (!res.success) {
-          box.innerHTML = `<p class="text-xs text-red-500">${res.error || "Không tải được lịch sử điểm danh."}</p>`;
-          return;
+        
+        if (res.success) {
+          resBox.innerText = "✅ " + res.message;
+          resBox.className = "p-4 bg-green-100 text-green-800 rounded-xl shadow-sm text-center font-bold text-sm border border-green-200 mt-4";
+          // Tải lại lịch sử ngay sau khi quét thành công
+          loadHistory(); 
+        } else {
+          resBox.innerText = "❌ " + res.error;
+          resBox.className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
         }
+        
+        // Tự động mở quét lại sau 3.5 giây
+        setTimeout(() => { 
+          resBox.classList.add('hidden'); 
+          html5QrCode.resume(); 
+        }, 3500); 
 
-        if (!res.data || res.data.length === 0) {
-          box.innerHTML = `<p class="text-xs text-gray-400 italic">Chưa có lịch sử điểm danh.</p>`;
-          return;
-        }
-
-        box.innerHTML = res.data.map(item => {
-          let badgeClass = "bg-gray-100 text-gray-700";
-
-          if (item.trangThai === "Hoàn tất") {
-            badgeClass = "bg-green-100 text-green-700";
-          } else if (item.trangThai === "Chỉ check-in") {
-            badgeClass = "bg-yellow-100 text-yellow-700";
-          } else if (item.trangThai === "Chỉ check-out") {
-            badgeClass = "bg-red-100 text-red-700";
-          }
-
-          return `
-            <div class="bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
-              <div class="flex justify-between items-start gap-2">
-                <div>
-                  <p class="font-bold text-sm text-gray-800">${item.thoiGian} - ${item.buoi}</p>
-                  <p class="text-xs text-gray-500 mt-1">${item.diaDiem}</p>
-                </div>
-                <span class="text-[10px] font-bold px-2 py-1 rounded-lg ${badgeClass}">
-                  ${item.trangThai}
-                </span>
-              </div>
-
-              <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
-                <div class="bg-gray-50 rounded-lg p-2">
-                  <p class="text-gray-400">Check-in</p>
-                  <p class="font-bold text-gray-800">${item.checkIn || "--:--"}</p>
-                </div>
-                <div class="bg-gray-50 rounded-lg p-2">
-                  <p class="text-gray-400">Check-out</p>
-                  <p class="font-bold text-gray-800">${item.checkOut || "--:--"}</p>
-                </div>
-              </div>
-
-              <p class="text-[11px] text-gray-500 mt-2">${item.ghiChu || ""}</p>
-            </div>
-          `;
-        }).join("");
-
-      } catch (err) {
-        box.innerHTML = `<p class="text-xs text-red-500">Lỗi tải lịch sử điểm danh.</p>`;
+      } catch (e) {
+        resBox.innerText = "❌ Lỗi kết nối mạng. Vui lòng thử lại!";
+        resBox.className = "p-4 bg-red-100 text-red-800 rounded-xl shadow-sm text-center font-bold text-sm border border-red-200 mt-4";
+        setTimeout(() => { resBox.classList.add('hidden'); html5QrCode.resume(); }, 3000);
       }
     }
+
+    // ==========================================
+    // 4. LOGIC TẢI LỊCH SỬ ĐIỂM DANH TỪ SHEET
+    // ==========================================
+    async function loadHistory() {
+  const box =
+    document.getElementById("historyList") ||
+    document.getElementById("historyBox") ||
+    document.getElementById("lichSuDiemDanh");
+
+  if (!box) return;
+
+  box.innerHTML = `<p class="text-xs text-gray-400 italic">Đang tải lịch sử điểm danh...</p>`;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "getLichSuDiemDanhTNV",
+        sessionId
+      })
+    });
+
+    const res = await response.json();
+
+    if (!res.success) {
+      box.innerHTML = `<p class="text-xs text-red-500">${res.error}</p>`;
+      return;
+    }
+
+    if (!res.data || res.data.length === 0) {
+      box.innerHTML = `<p class="text-xs text-gray-400 italic">Chưa có lịch sử điểm danh.</p>`;
+      return;
+    }
+
+    box.innerHTML = res.data.map(item => {
+      let badgeClass = "bg-gray-100 text-gray-700";
+
+      if (item.trangThai === "Hoàn tất") {
+        badgeClass = "bg-green-100 text-green-700";
+      } else if (item.trangThai === "Chỉ check-in") {
+        badgeClass = "bg-yellow-100 text-yellow-700";
+      } else if (item.trangThai === "Chỉ check-out") {
+        badgeClass = "bg-red-100 text-red-700";
+      }
+
+      return `
+        <div class="bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
+          <div class="flex justify-between items-start gap-2">
+            <div>
+              <p class="font-bold text-sm text-gray-800">${item.thoiGian} - ${item.buoi}</p>
+              <p class="text-xs text-gray-500 mt-1">${item.diaDiem}</p>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-1 rounded-lg ${badgeClass}">
+              ${item.trangThai}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
+            <div class="bg-gray-50 rounded-lg p-2">
+              <p class="text-gray-400">Check-in</p>
+              <p class="font-bold text-gray-800">${item.checkIn || "--:--"}</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-2">
+              <p class="text-gray-400">Check-out</p>
+              <p class="font-bold text-gray-800">${item.checkOut || "--:--"}</p>
+            </div>
+          </div>
+
+          <p class="text-[11px] text-gray-500 mt-2">${item.ghiChu}</p>
+        </div>
+      `;
+    }).join("");
+
+  } catch (err) {
+    box.innerHTML = `<p class="text-xs text-red-500">Lỗi tải lịch sử điểm danh.</p>`;
+  }
+}
   </script>
 </body>
 </html>
