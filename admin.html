@@ -82,6 +82,9 @@
         <button onclick="switchTab('vipham')" id="btn-vipham" class="px-4 py-2 text-xs font-bold rounded-lg text-gray-600 hover:bg-gray-100 transition">
           Ghi nhận sai phạm
         </button>
+        <button onclick="switchTab('captaikhoan')" id="btn-captaikhoan" class="hidden px-4 py-2 text-xs font-bold rounded-lg text-gray-600 hover:bg-gray-100 transition">
+          Cấp tài khoản
+        </button>
       </div>
     </div>
   </div>
@@ -229,7 +232,7 @@
               </button>
             </div>
             <p class="text-[11px] text-gray-500 mt-2 leading-relaxed">
-              Nếu là Admin khu vực: hệ thống chỉ tạo báo cáo chờ duyệt. Nếu là Admin/SuperAdmin: hệ thống sẽ trực tiếp ghi quyết định và thực thi ngay lập tức.
+              Nếu là Admin khu vực: hệ thống chỉ tạo báo cáo chờ duyệt. Nếu là Admin/SuperAdmin: hệ thống ghi quyết định và thực thi ngay lập tức.
             </p>
           </div>
 
@@ -252,10 +255,70 @@
       </div>
     </div>
 
+    <div id="tab-captaikhoan" class="tab-content">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-indigo-50 px-4 py-3 border-b border-indigo-100 flex justify-between">
+          <div>
+            <h2 class="font-bold text-indigo-800 text-sm">Cấp tài khoản quản trị</h2>
+            <p class="text-[11px] text-indigo-600 mt-1">Chỉ SuperAdmin được cấp, khóa hoặc mở khóa tài khoản admin.</p>
+          </div>
+          <button onclick="loadCapTaiKhoan()" class="text-xs text-blue-600 underline">Làm mới</button>
+        </div>
+
+        <div class="p-4 space-y-5 text-sm">
+          <div class="bg-gray-50 border rounded-xl p-3">
+            <h3 class="font-bold text-gray-800 text-xs uppercase mb-3">1. Thông tin tài khoản</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <input id="tk-email" type="email" class="border p-2 rounded text-xs" placeholder="Email đăng nhập">
+              <input id="tk-hotenk" class="border p-2 rounded text-xs" placeholder="Họ tên admin">
+
+              <select id="tk-capquyen" onchange="onChangeCapQuyenTaiKhoan()" class="border p-2 rounded text-xs">
+                <option value="">-- Chọn cấp quyền --</option>
+                <option value="SuperAdmin">SuperAdmin</option>
+                <option value="Admin">Admin</option>
+                <option value="Admin khu vực">Admin khu vực</option>
+                <option value="Kho bãi">Kho bãi</option>
+                <option value="ACC">ACC</option>
+              </select>
+
+              <input id="tk-matkhau" type="text" class="border p-2 rounded text-xs" placeholder="Mật khẩu">
+
+              <div class="md:col-span-2 bg-white border rounded-xl p-3">
+                <div class="flex items-center justify-between gap-2 mb-2">
+                  <label class="font-bold text-xs text-gray-700">Phạm vi khu vực</label>
+                  <button type="button" onclick="selectAllKhuVucTaiKhoan()" class="text-[10px] text-blue-600 underline font-bold">Chọn ALL</button>
+                </div>
+                <select id="tk-phamvi" multiple size="7" class="w-full border p-2 rounded text-xs bg-gray-50">
+                  <option value="ALL">ALL - Toàn hệ thống</option>
+                </select>
+                <p class="text-[11px] text-gray-500 mt-2">
+                  Giữ Ctrl/Cmd để chọn nhiều khu vực. Khi lưu vào sheet, hệ thống ghi mã khu vực cột A của CauHinhKhuVuc.
+                  Các quyền SuperAdmin/Admin/Kho bãi/ACC nên dùng ALL.
+                </p>
+              </div>
+
+              <button onclick="submitCapTaiKhoan()" class="md:col-span-2 bg-indigo-700 text-white font-bold rounded text-xs px-3 py-2">
+                Cấp tài khoản
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white border rounded-xl p-3">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="font-bold text-gray-800 text-xs uppercase">2. Danh sách tài khoản đã cấp</h3>
+              <button onclick="loadDanhSachTaiKhoanAdmin()" class="text-xs text-blue-600 underline">Tải danh sách</button>
+            </div>
+            <div id="listTaiKhoanAdmin" class="space-y-2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyqoJnRbmMsBOlOzcf0Cc940RRXtqONc2EHUF3wMB2hXgLaCihq0jKi3jAh5waW5_ulmg/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbyVwPUbEHpH5T5Q_kbnEn83nrF9KQx8jr4omLzGL5YN1H8cjNQG4ZOSLweuAKW9USZLqA/exec";
     const sessionId = sessionStorage.getItem('sessionId');
     const adminName = sessionStorage.getItem('adminName') || "Admin";
 
@@ -289,6 +352,10 @@
       getBaoCaoViPham: 'Đang tải báo cáo vi phạm...',
       adminDuyetBaoCaoViPham: 'Đang xử lý báo cáo vi phạm...',
       adminThucThiBaoCaoViPham: 'Đang đánh dấu thực thi xử phạt...',
+      getDanhSachKhuVucCapTaiKhoan: 'Đang tải danh sách khu vực...',
+      getDanhSachTaiKhoanAdmin: 'Đang tải danh sách tài khoản...',
+      adminCapTaiKhoan: 'Đang cấp tài khoản...',
+      adminDoiTrangThaiTaiKhoan: 'Đang cập nhật trạng thái tài khoản...',
       getLichSuViPham: 'Đang tải lịch sử vi phạm...',
       adminXoaViPham: 'Đang xóa ghi nhận sai phạm...'
     };
@@ -398,6 +465,7 @@
       loadGCN(true);
       loadNoLink(true);
       loadDiemTrucOptions();
+      initCapTaiKhoanVisibility();
     };
 
     function logout() {
@@ -424,6 +492,7 @@
       if (tabId === 'lichsugcn') loadLichSuGCN();
       if (tabId === 'truongdiem') { loadDiemTrucOptions(); loadTruongDiem(); }
       if (tabId === 'vipham') loadViPham();
+      if (tabId === 'captaikhoan') loadCapTaiKhoan();
     }
 
     function updateBadge(id, count) {
@@ -802,7 +871,7 @@ async function openEditGCN(maYC, currentStatus, currentNote) {
     async function deleteTruongDiem(rowNumber, maTNV) {
       if (!rowNumber) return alert('Không xác định được dòng cần xóa');
       if (!confirm(`Xóa phân công trưởng điểm của ${maTNV}?
-Thao tác này sẽ xóa không ghi nhận số buổi của Trưởng điểm trực.`)) return;
+Thao tác này sẽ không ghi nhận số buổi điểm danh của Trưởng điểm trực`)) return;
       const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'adminXoaTruongDiemTruc', sessionId, rowNumber, maTNV, adminName }) });
       const res = await response.json();
       if (res.success) {
@@ -1111,6 +1180,210 @@ Thao tác này sẽ xóa không ghi nhận số buổi của Trưởng điểm t
         loadViPham();
       } else {
         alert(res.error || 'Không xóa được quyết định xử phạt');
+      }
+    }
+
+
+    // --- TAB CẤP TÀI KHOẢN - CHỈ SUPERADMIN ---
+    let __khuVucCapTaiKhoanLoaded = false;
+
+    function getSelectedPhamViTaiKhoan() {
+      const select = document.getElementById('tk-phamvi');
+      if (!select) return [];
+      return Array.from(select.selectedOptions).map(opt => opt.value).filter(Boolean);
+    }
+
+    function selectAllKhuVucTaiKhoan() {
+      const select = document.getElementById('tk-phamvi');
+      if (!select) return;
+      Array.from(select.options).forEach(opt => opt.selected = opt.value === 'ALL');
+    }
+
+    function onChangeCapQuyenTaiKhoan() {
+      const role = document.getElementById('tk-capquyen')?.value || '';
+      if (['SuperAdmin', 'Admin', 'Kho bãi', 'ACC'].includes(role)) {
+        selectAllKhuVucTaiKhoan();
+      }
+    }
+
+    async function initCapTaiKhoanVisibility() {
+      const btn = document.getElementById('btn-captaikhoan');
+      if (!btn) return;
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'getDanhSachTaiKhoanAdmin', sessionId })
+        });
+        const res = await response.json();
+
+        if (res.success) {
+          btn.classList.remove('hidden');
+          renderDanhSachTaiKhoanAdmin(res.data || []);
+          await loadKhuVucCapTaiKhoan();
+        } else {
+          btn.classList.add('hidden');
+        }
+      } catch (e) {
+        btn.classList.add('hidden');
+      }
+    }
+
+    async function loadCapTaiKhoan() {
+      await loadKhuVucCapTaiKhoan();
+      await loadDanhSachTaiKhoanAdmin();
+    }
+
+    async function loadKhuVucCapTaiKhoan() {
+      const select = document.getElementById('tk-phamvi');
+      if (!select) return;
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'getDanhSachKhuVucCapTaiKhoan', sessionId })
+        });
+        const res = await response.json();
+
+        if (!res.success) {
+          select.innerHTML = '<option value="ALL">ALL - Toàn hệ thống</option>';
+          return;
+        }
+
+        select.innerHTML = (res.data || []).map(kv => {
+          const ma = escapeText(kv.maKhuVuc);
+          const ten = escapeText(kv.tenKhuVuc);
+          return `<option value="${ma}">${ten} (${ma})</option>`;
+        }).join('');
+
+        __khuVucCapTaiKhoanLoaded = true;
+      } catch (e) {
+        select.innerHTML = '<option value="ALL">ALL - Toàn hệ thống</option>';
+      }
+    }
+
+    async function submitCapTaiKhoan() {
+      const email = document.getElementById('tk-email').value.trim();
+      const hoTen = document.getElementById('tk-hotenk').value.trim();
+      const capQuyen = document.getElementById('tk-capquyen').value;
+      const matKhau = document.getElementById('tk-matkhau').value;
+      let phamViKhuVuc = getSelectedPhamViTaiKhoan();
+
+      if (!email) return alert('Vui lòng nhập email.');
+      if (!hoTen) return alert('Vui lòng nhập họ tên.');
+      if (!capQuyen) return alert('Vui lòng chọn cấp quyền.');
+      if (!matKhau) return alert('Vui lòng nhập mật khẩu.');
+      if (phamViKhuVuc.length === 0) return alert('Vui lòng chọn phạm vi khu vực.');
+
+      if (['SuperAdmin', 'Admin', 'Kho bãi', 'ACC'].includes(capQuyen)) {
+        phamViKhuVuc = ['ALL'];
+      }
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'adminCapTaiKhoan',
+          sessionId,
+          email,
+          hoTen,
+          capQuyen,
+          phamViKhuVuc,
+          matKhau
+        })
+      });
+
+      const res = await response.json();
+
+      if (res.success) {
+        alert(res.message || 'Đã cấp tài khoản');
+        document.getElementById('tk-email').value = '';
+        document.getElementById('tk-hotenk').value = '';
+        document.getElementById('tk-capquyen').value = '';
+        document.getElementById('tk-matkhau').value = '';
+        selectAllKhuVucTaiKhoan();
+        loadDanhSachTaiKhoanAdmin();
+      } else {
+        alert(res.error || 'Không cấp được tài khoản');
+      }
+    }
+
+    async function loadDanhSachTaiKhoanAdmin() {
+      const box = document.getElementById('listTaiKhoanAdmin');
+      if (!box) return;
+      box.innerHTML = '<p class="text-xs text-gray-400">Đang tải danh sách tài khoản...</p>';
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'getDanhSachTaiKhoanAdmin', sessionId })
+        });
+        const res = await response.json();
+
+        if (!res.success) {
+          box.innerHTML = `<p class="text-xs text-red-500">${escapeText(res.error || 'Không tải được danh sách tài khoản')}</p>`;
+          return;
+        }
+
+        renderDanhSachTaiKhoanAdmin(res.data || []);
+      } catch (e) {
+        box.innerHTML = '<p class="text-xs text-red-500">Lỗi tải danh sách tài khoản.</p>';
+      }
+    }
+
+    function renderDanhSachTaiKhoanAdmin(data) {
+      const box = document.getElementById('listTaiKhoanAdmin');
+      if (!box) return;
+
+      if (!data || data.length === 0) {
+        box.innerHTML = '<p class="text-xs text-gray-400 italic">Chưa có tài khoản admin nào.</p>';
+        return;
+      }
+
+      box.innerHTML = data.map(tk => {
+        const active = tk.trangThai === 'Hoạt động';
+        const nextStatus = active ? 'Đã khóa' : 'Hoạt động';
+        const btnClass = active
+          ? 'bg-red-600 hover:bg-red-700 text-white'
+          : 'bg-green-600 hover:bg-green-700 text-white';
+        const btnText = active ? 'Khóa tài khoản' : 'Mở khóa';
+
+        return `
+          <div class="border rounded-xl p-3 bg-white item-row">
+            <div class="flex justify-between gap-3 items-start">
+              <div class="min-w-0">
+                <p class="font-bold text-gray-800">${escapeText(tk.hoTen)} <span class="text-xs text-gray-500">(${escapeText(tk.email)})</span></p>
+                <p class="text-[11px] text-indigo-700 font-bold">${escapeText(tk.capQuyen)} | Phạm vi: ${escapeText(tk.phamViKhuVuc || 'N/A')}</p>
+                <p class="text-[10px] ${active ? 'text-green-600' : 'text-red-600'} font-bold">Trạng thái: ${escapeText(tk.trangThai || 'N/A')}</p>
+              </div>
+              <button onclick="doiTrangThaiTaiKhoan('${escapeText(tk.email)}', '${nextStatus}')" class="shrink-0 ${btnClass} font-bold rounded-lg text-[10px] px-3 py-1.5">
+                ${btnText}
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    async function doiTrangThaiTaiKhoan(email, trangThai) {
+      const actionText = trangThai === 'Đã khóa' ? 'khóa' : 'mở khóa';
+      if (!confirm(`Xác nhận ${actionText} tài khoản ${email}?`)) return;
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'adminDoiTrangThaiTaiKhoan',
+          sessionId,
+          email,
+          trangThai
+        })
+      });
+
+      const res = await response.json();
+
+      if (res.success) {
+        alert(res.message || 'Đã cập nhật tài khoản');
+        loadDanhSachTaiKhoanAdmin();
+      } else {
+        alert(res.error || 'Không cập nhật được tài khoản');
       }
     }
 
