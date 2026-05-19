@@ -199,23 +199,55 @@
     <div id="tab-vipham" class="tab-content">
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="bg-red-50 px-4 py-3 border-b border-red-100 flex justify-between">
-          <h2 class="font-bold text-red-800 text-sm">Ghi nhận sai phạm TNV</h2>
+          <div>
+            <h2 class="font-bold text-red-800 text-sm">Ghi nhận / Duyệt sai phạm TNV</h2>
+            <p class="text-[11px] text-red-600 mt-1">
+              Admin khu vực chỉ gửi báo cáo. Admin/SuperAdmin duyệt mới ghi vào ViPham để trừ buổi.
+            </p>
+          </div>
           <button onclick="loadViPham()" class="text-xs text-blue-600 underline">Làm mới</button>
         </div>
-        <div class="p-4 space-y-4 text-sm">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
-            <input id="vp-ma" class="border p-2 rounded text-xs" placeholder="Nhập mã TNV hoặc SĐT">
-            <button onclick="traCuuViPham()" class="bg-gray-900 text-white font-bold rounded text-xs px-3 py-2">Tra cứu</button>
+
+        <div class="p-4 space-y-5 text-sm">
+          <div class="bg-gray-50 border rounded-xl p-3">
+            <h3 class="font-bold text-gray-800 text-xs uppercase mb-3">1. Tra cứu TNV và ghi nhận sai phạm</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+              <input id="vp-ma" class="border p-2 rounded text-xs" placeholder="Nhập mã TNV hoặc SĐT">
+              <button onclick="traCuuViPham()" class="bg-gray-900 text-white font-bold rounded text-xs px-3 py-2">Tra cứu</button>
+              <input id="vp-khuvuc" class="border p-2 rounded text-xs md:col-span-2" placeholder="Mã khu vực, ví dụ D1 / KV_MEDIA. Bỏ trống sẽ lấy phạm vi đầu tiên của admin khu vực">
+            </div>
+            <div id="vp-info" class="hidden bg-white border rounded-xl p-3 mt-3"></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3">
+              <textarea id="vp-noidung" class="border p-2 rounded text-xs md:col-span-2" rows="3" placeholder="Nội dung vi phạm"></textarea>
+              <input id="vp-minhchung" class="border p-2 rounded text-xs md:col-span-2" placeholder="Link minh chứng báo cáo sai phạm (ảnh/video/Drive nếu có)">
+              <input id="vp-quyetdinh" class="border p-2 rounded text-xs" placeholder="Quyết định xử phạt (Admin/SuperAdmin bắt buộc khi xử phạt trực tiếp)">
+              <input id="vp-link" class="border p-2 rounded text-xs" placeholder="Link thông báo / quyết định">
+              <input id="vp-tru" type="number" step="0.5" min="0" class="border p-2 rounded text-xs" placeholder="Số buổi trừ / đề xuất trừ">
+              <button onclick="submitViPham()" class="bg-red-700 text-white font-bold rounded text-xs px-3 py-2">
+                Gửi ghi nhận / báo cáo sai phạm
+              </button>
+            </div>
+            <p class="text-[11px] text-gray-500 mt-2 leading-relaxed">
+              Nếu là Admin khu vực: hệ thống chỉ tạo báo cáo chờ duyệt. Nếu là Admin/SuperAdmin: hệ thống ghi quyết định vào BaoCaoViPham và tự động ghi sang ViPham.
+            </p>
           </div>
-          <div id="vp-info" class="hidden bg-gray-50 border rounded-xl p-3"></div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <textarea id="vp-noidung" class="border p-2 rounded text-xs md:col-span-2" rows="3" placeholder="Nội dung vi phạm"></textarea>
-            <input id="vp-quyetdinh" class="border p-2 rounded text-xs" placeholder="Quyết định xử phạt">
-            <input id="vp-link" class="border p-2 rounded text-xs" placeholder="Link thông báo / quyết định">
-            <input id="vp-tru" type="number" step="0.5" min="0" class="border p-2 rounded text-xs" placeholder="Số buổi trừ">
-            <button onclick="submitViPham()" class="bg-red-700 text-white font-bold rounded text-xs px-3 py-2">Ghi nhận sai phạm</button>
+
+          <div class="bg-yellow-50 border border-yellow-100 rounded-xl p-3">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="font-bold text-yellow-800 text-xs uppercase">2. Báo cáo sai phạm / Chờ duyệt / Thực thi</h3>
+              <button onclick="loadBaoCaoViPham()" class="text-xs text-blue-600 underline">Tải báo cáo</button>
+            </div>
+            <div id="listBaoCaoViPham" class="space-y-3"></div>
           </div>
-          <div id="listViPham" class="space-y-2"></div>
+
+          <div class="bg-white border rounded-xl p-3">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="font-bold text-gray-800 text-xs uppercase">3. Vi phạm chính thức đang tính trừ buổi</h3>
+              <button onclick="loadLichSuViPhamChinhThuc()" class="text-xs text-blue-600 underline">Tải lịch sử chính thức</button>
+            </div>
+            <div id="listViPham" class="space-y-2"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -223,7 +255,7 @@
   </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyBB2j1JHi_RbODYc64bFU6qXvbtrrViYn7sV_TxMEF06TxHskfdGKOFarmv23CVmQh6A/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbyqoJnRbmMsBOlOzcf0Cc940RRXtqONc2EHUF3wMB2hXgLaCihq0jKi3jAh5waW5_ulmg/exec";
     const sessionId = sessionStorage.getItem('sessionId');
     const adminName = sessionStorage.getItem('adminName') || "Admin";
 
@@ -253,7 +285,10 @@
       adminThemTruongDiemTruc: 'Đang thêm trưởng điểm trực...',
       getDanhSachTruongDiemTruc: 'Đang tải lịch sử trưởng điểm...',
       adminXoaTruongDiemTruc: 'Đang xóa phân công trưởng điểm...',
-      adminGhiNhanViPham: 'Đang ghi nhận sai phạm...',
+      adminGhiNhanViPham: 'Đang ghi nhận/báo cáo sai phạm...',
+      getBaoCaoViPham: 'Đang tải báo cáo vi phạm...',
+      adminDuyetBaoCaoViPham: 'Đang xử lý báo cáo vi phạm...',
+      adminThucThiBaoCaoViPham: 'Đang đánh dấu thực thi xử phạt...',
       getLichSuViPham: 'Đang tải lịch sử vi phạm...',
       adminXoaViPham: 'Đang xóa ghi nhận sai phạm...'
     };
@@ -777,73 +812,306 @@ Thao tác này sẽ xóa khỏi sheet TruongDiemTruc.`)) return;
     }
 
 
-    // --- TAB VI PHẠM ---
+    // --- TAB VI PHẠM / WORKFLOW XỬ PHẠT ---
+    let currentViPhamRole = null;
+    let currentViPhamScope = [];
+
+    function escapeText(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function badgeViPhamStatus(status) {
+      const st = String(status || '');
+      if (st === 'Chờ duyệt') return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      if (st === 'Đã duyệt') return 'bg-green-100 text-green-800 border-green-200';
+      if (st === 'Từ chối') return 'bg-red-100 text-red-800 border-red-200';
+      if (st === 'Đã thực thi') return 'bg-purple-100 text-purple-800 border-purple-200';
+      return 'bg-gray-100 text-gray-700 border-gray-200';
+    }
+
     async function traCuuViPham() {
       const keyword = document.getElementById('vp-ma').value.trim();
       if (!keyword) return alert('Nhập mã TNV hoặc SĐT');
-      const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'traCuuTNVAdmin', sessionId, keyword }) });
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'traCuuTNVAdmin', sessionId, keyword })
+      });
       const res = await response.json();
+
       if (!res.success) return alert(res.error);
+
       selectedViPhamTNV = res.data;
       document.getElementById('vp-info').classList.remove('hidden');
-      document.getElementById('vp-info').innerHTML = `<b>${res.data.hoTen}</b> (${res.data.maTNV})<br><span class="text-xs text-blue-600">SĐT: ${res.data.sdt || 'N/A'} | Đã cộng: ${res.data.soBuoiCong} | Đã trừ: ${res.data.soBuoiTru} | Còn: ${res.data.tongBuoi}</span>`;
+      document.getElementById('vp-info').innerHTML =
+        `<b>${escapeText(res.data.hoTen)}</b> (${escapeText(res.data.maTNV)})<br>
+        <span class="text-xs text-blue-600">
+          SĐT: ${escapeText(res.data.sdt || 'N/A')} |
+          Đã cộng: ${escapeText(res.data.soBuoiCong)} |
+          Đã trừ: ${escapeText(res.data.soBuoiTru)} |
+          Còn: ${escapeText(res.data.tongBuoi)}
+        </span>`;
     }
 
     async function submitViPham() {
       if (!selectedViPhamTNV) return alert('Vui lòng tra cứu TNV trước');
+
       const thongTinViPham = document.getElementById('vp-noidung').value.trim();
+      const maKhuVuc = document.getElementById('vp-khuvuc').value.trim();
+      const linkMinhChung = document.getElementById('vp-minhchung').value.trim();
       const quyetDinhXuPhat = document.getElementById('vp-quyetdinh').value.trim();
       const linkQuyetDinhXuPhat = document.getElementById('vp-link').value.trim();
       const soBuoiTru = parseFloat(document.getElementById('vp-tru').value) || 0;
+
       if (!thongTinViPham) return alert('Nhập nội dung vi phạm');
-      const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'adminGhiNhanViPham', sessionId, maTNV: selectedViPhamTNV.maTNV, thongTinViPham, quyetDinhXuPhat, linkQuyetDinhXuPhat, soBuoiTru, adminName }) });
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'adminGhiNhanViPham',
+          sessionId,
+          maTNV: selectedViPhamTNV.maTNV,
+          maKhuVuc,
+          thongTinViPham,
+          linkMinhChung,
+          quyetDinhXuPhat,
+          linkQuyetDinhXuPhat,
+          soBuoiTru,
+          soBuoiDeXuat: soBuoiTru,
+          adminName
+        })
+      });
+
       const res = await response.json();
+
       if (res.success) {
-        alert('Đã ghi nhận sai phạm');
+        alert(res.message || 'Đã ghi nhận sai phạm');
         document.getElementById('vp-noidung').value = '';
+        document.getElementById('vp-minhchung').value = '';
         document.getElementById('vp-quyetdinh').value = '';
         document.getElementById('vp-link').value = '';
         document.getElementById('vp-tru').value = '';
         loadViPham();
-      } else alert(res.error);
+      } else {
+        alert(res.error || 'Không ghi nhận được sai phạm');
+      }
     }
 
     async function loadViPham() {
+      await loadBaoCaoViPham();
+      await loadLichSuViPhamChinhThuc();
+    }
+
+    async function loadBaoCaoViPham() {
+      const box = document.getElementById('listBaoCaoViPham');
+      if (!box) return;
+      box.innerHTML = '<p class="text-xs text-gray-400">Đang tải báo cáo vi phạm...</p>';
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'getBaoCaoViPham', sessionId })
+        });
+        const res = await response.json();
+
+        if (!res.success) {
+          box.innerHTML = `<p class="text-xs text-red-500">${escapeText(res.error)}</p>`;
+          return;
+        }
+
+        currentViPhamRole = res.capQuyenKey;
+        currentViPhamScope = res.phamViList || [];
+
+        if (!res.data || res.data.length === 0) {
+          box.innerHTML = '<p class="text-xs text-gray-400 italic">Chưa có báo cáo vi phạm.</p>';
+          return;
+        }
+
+        box.innerHTML = res.data.map(x => {
+          const canDuyet = !!x.canDuyet;
+          const canThucThi = !!x.canThucThi;
+          const safeMa = escapeText(x.maBaoCao);
+          return `
+            <div class="border rounded-xl p-3 bg-white item-row">
+              <div class="flex justify-between gap-3 items-start">
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap gap-2 items-center">
+                    <p class="font-bold text-gray-800">${escapeText(x.hoTen)} <span class="text-xs text-gray-500">(${escapeText(x.maTNV)})</span></p>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full border ${badgeViPhamStatus(x.trangThai)}">${escapeText(x.trangThai)}</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 border">${escapeText(x.maKhuVuc || 'N/A')}</span>
+                  </div>
+                  <p class="text-[11px] text-gray-500 mt-1">
+                    Mã BC: ${safeMa} | Báo cáo: ${escapeText(x.thoiGianBaoCao)} | Người báo cáo: ${escapeText(x.adminBaoCao || 'N/A')}
+                  </p>
+                  <p class="text-[11px] text-gray-700 mt-2 bg-gray-50 border rounded p-2">${escapeText(x.thongTinViPham)}</p>
+                  <p class="text-[11px] text-yellow-700 font-bold mt-1">Đề xuất trừ: ${escapeText(x.soBuoiDeXuat || 0)} buổi</p>
+
+                  ${x.linkMinhChung ? `<a href="${escapeText(x.linkMinhChung)}" target="_blank" class="text-[10px] text-blue-600 underline font-bold mr-2">Xem minh chứng</a>` : ''}
+                  ${x.linkQuyetDinhXuPhat ? `<a href="${escapeText(x.linkQuyetDinhXuPhat)}" target="_blank" class="text-[10px] text-green-600 underline font-bold mr-2">Xem quyết định</a>` : ''}
+
+                  ${x.trangThai === 'Đã duyệt' ? `<p class="text-[11px] text-green-700 mt-1">Đã duyệt: ${escapeText(x.soBuoiTru)} buổi | ${escapeText(x.quyetDinhXuPhat || '')}</p>` : ''}
+                  ${x.trangThai === 'Từ chối' ? `<p class="text-[11px] text-red-600 mt-1">Lý do từ chối: ${escapeText(x.lyDoTuChoi || '')}</p>` : ''}
+                  ${x.trangThai === 'Đã thực thi' ? `<p class="text-[11px] text-purple-700 mt-1">Thực thi bởi ${escapeText(x.adminThucThi || '')} lúc ${escapeText(x.thoiGianThucThi || '')}. ${escapeText(x.ghiChuThucThi || '')}</p>` : ''}
+
+                  <div class="flex flex-wrap gap-2 mt-3">
+                    ${canDuyet ? `
+                      <button onclick="duyetBaoCaoViPham('${safeMa}')" class="bg-green-600 text-white hover:bg-green-700 font-bold rounded-lg text-[10px] px-3 py-1.5">Duyệt</button>
+                      <button onclick="tuChoiBaoCaoViPham('${safeMa}')" class="bg-red-600 text-white hover:bg-red-700 font-bold rounded-lg text-[10px] px-3 py-1.5">Từ chối</button>
+                    ` : ''}
+                    ${canThucThi ? `
+                      <button onclick="thucThiBaoCaoViPham('${safeMa}')" class="bg-purple-600 text-white hover:bg-purple-700 font-bold rounded-lg text-[10px] px-3 py-1.5">Đã thực thi</button>
+                    ` : ''}
+                  </div>
+                </div>
+              </div>
+            </div>`;
+        }).join('');
+      } catch(e) {
+        box.innerHTML = '<p class="text-xs text-red-500">Lỗi tải báo cáo vi phạm.</p>';
+      }
+    }
+
+    async function duyetBaoCaoViPham(maBaoCao) {
+      const quyetDinhXuPhat = prompt('Nhập quyết định xử phạt:');
+      if (!quyetDinhXuPhat) return alert('Bắt buộc nhập quyết định xử phạt');
+
+      const soBuoiTru = parseFloat(prompt('Nhập số buổi trừ chính thức:', '0')) || 0;
+      if (soBuoiTru <= 0) return alert('Số buổi trừ phải > 0');
+
+      const linkQuyetDinhXuPhat = prompt('Dán link quyết định/thông báo xử phạt nếu có:', '') || '';
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'adminDuyetBaoCaoViPham',
+          sessionId,
+          maBaoCao,
+          status: 'Đã duyệt',
+          quyetDinhXuPhat,
+          linkQuyetDinhXuPhat,
+          soBuoiTru,
+          adminName
+        })
+      });
+
+      const res = await response.json();
+      if (res.success) {
+        alert(res.message || 'Đã duyệt báo cáo');
+        loadViPham();
+      } else {
+        alert(res.error || 'Không duyệt được báo cáo');
+      }
+    }
+
+    async function tuChoiBaoCaoViPham(maBaoCao) {
+      const lyDoTuChoi = prompt('Nhập lý do từ chối báo cáo xử phạt:');
+      if (!lyDoTuChoi) return alert('Bắt buộc nhập lý do từ chối');
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'adminDuyetBaoCaoViPham',
+          sessionId,
+          maBaoCao,
+          status: 'Từ chối',
+          lyDoTuChoi,
+          adminName
+        })
+      });
+
+      const res = await response.json();
+      if (res.success) {
+        alert(res.message || 'Đã từ chối báo cáo');
+        loadViPham();
+      } else {
+        alert(res.error || 'Không từ chối được báo cáo');
+      }
+    }
+
+    async function thucThiBaoCaoViPham(maBaoCao) {
+      const ghiChuThucThi = prompt('Ghi chú thực thi/thông báo cho TNV:', '') || '';
+      if (!confirm('Xác nhận đã thực thi quyết định xử phạt? Thao tác này KHÔNG ghi thêm vào ViPham.')) return;
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'adminThucThiBaoCaoViPham',
+          sessionId,
+          maBaoCao,
+          ghiChuThucThi,
+          adminName
+        })
+      });
+
+      const res = await response.json();
+      if (res.success) {
+        alert(res.message || 'Đã đánh dấu thực thi');
+        loadViPham();
+      } else {
+        alert(res.error || 'Không đánh dấu thực thi được');
+      }
+    }
+
+    async function loadLichSuViPhamChinhThuc() {
       const box = document.getElementById('listViPham');
       if (!box) return;
-      box.innerHTML = '<p class="text-xs text-gray-400">Đang tải lịch sử vi phạm...</p>';
+      box.innerHTML = '<p class="text-xs text-gray-400">Đang tải lịch sử vi phạm chính thức...</p>';
+
       try {
-        const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getLichSuViPham', sessionId }) });
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'getLichSuViPham', sessionId })
+        });
         const res = await response.json();
+
         if (res.success) {
-          if (res.data.length === 0) { box.innerHTML = '<p class="text-xs text-gray-400 italic">Chưa có vi phạm.</p>'; return; }
+          if (res.data.length === 0) {
+            box.innerHTML = '<p class="text-xs text-gray-400 italic">Chưa có vi phạm chính thức.</p>';
+            return;
+          }
+
           box.innerHTML = res.data.map(x => `
             <div class="border border-red-100 rounded-xl p-3 bg-white item-row">
               <div class="flex justify-between gap-3 items-start">
                 <div class="min-w-0">
-                  <p class="font-bold text-gray-800">${x.hoTen} <span class="text-xs text-gray-500">(${x.maTNV})</span></p>
-                  <p class="text-[11px] text-red-600 font-bold">Trừ: ${x.soBuoiTru} buổi | ${x.quyetDinhXuPhat || 'Chưa có quyết định'}</p>
-                  <p class="text-[11px] text-gray-600 mt-1">${x.thongTinViPham}</p>
-                  ${x.linkQuyetDinhXuPhat ? `<a href="${x.linkQuyetDinhXuPhat}" target="_blank" class="text-[10px] text-blue-600 underline">Xem quyết định</a>` : ''}
-                  <p class="text-[10px] text-gray-400 mt-1">${x.thoiGian} | ${x.admin}</p>
+                  <p class="font-bold text-gray-800">${escapeText(x.hoTen)} <span class="text-xs text-gray-500">(${escapeText(x.maTNV)})</span></p>
+                  <p class="text-[11px] text-red-600 font-bold">Trừ: ${escapeText(x.soBuoiTru)} buổi | ${escapeText(x.quyetDinhXuPhat || 'Chưa có quyết định')}</p>
+                  <p class="text-[11px] text-gray-600 mt-1">${escapeText(x.thongTinViPham)}</p>
+                  ${x.linkQuyetDinhXuPhat ? `<a href="${escapeText(x.linkQuyetDinhXuPhat)}" target="_blank" class="text-[10px] text-blue-600 underline">Xem quyết định</a>` : ''}
+                  <p class="text-[10px] text-gray-400 mt-1">${escapeText(x.thoiGian)} | ${escapeText(x.admin)}</p>
                 </div>
-                <button onclick="deleteViPham(${x.rowNumber}, '${String(x.maTNV || '').replace(/'/g, "\'")}')" class="shrink-0 bg-red-600 text-white hover:bg-red-700 font-bold rounded-lg text-[10px] px-3 py-1.5">Xóa</button>
+                <button onclick="deleteViPham(${x.rowNumber}, '${String(x.maTNV || '').replace(/'/g, "\\'")}')" class="shrink-0 bg-red-600 text-white hover:bg-red-700 font-bold rounded-lg text-[10px] px-3 py-1.5">Xóa</button>
               </div>
             </div>`).join('');
-        } else box.innerHTML = `<p class="text-xs text-red-500">${res.error}</p>`;
-      } catch(e) { box.innerHTML = '<p class="text-xs text-red-500">Lỗi tải dữ liệu.</p>'; }
+        } else {
+          box.innerHTML = `<p class="text-xs text-red-500">${escapeText(res.error)}</p>`;
+        }
+      } catch(e) {
+        box.innerHTML = '<p class="text-xs text-red-500">Lỗi tải dữ liệu.</p>';
+      }
     }
 
     async function deleteViPham(rowNumber, maTNV) {
       if (!rowNumber) return alert('Không xác định được dòng cần xóa');
-      if (!confirm(`Xóa ghi nhận sai phạm của ${maTNV}?
-Số buổi trừ của bản ghi này sẽ không còn được tính.`)) return;
-      const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'adminXoaViPham', sessionId, rowNumber, maTNV, adminName }) });
+      if (!confirm(`Xóa quyết định xử phạt chính thức của ${maTNV}?\nSố buổi trừ của bản ghi này sẽ không còn được tính.`)) return;
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'adminXoaViPham', sessionId, rowNumber, maTNV, adminName })
+      });
       const res = await response.json();
+
       if (res.success) {
-        alert('Đã xóa ghi nhận sai phạm');
+        alert('Đã xóa quyết định xử phạt chính thức');
         loadViPham();
-      } else alert(res.error || 'Không xóa được ghi nhận sai phạm');
+      } else {
+        alert(res.error || 'Không xóa được quyết định xử phạt');
+      }
     }
 
 
