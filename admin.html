@@ -229,7 +229,7 @@
               </button>
             </div>
             <p class="text-[11px] text-gray-500 mt-2 leading-relaxed">
-              Nếu là Admin khu vực: hệ thống chỉ tạo báo cáo chờ duyệt. Nếu là Admin/SuperAdmin: hệ thống ghi quyết định vào BaoCaoViPham và tự động ghi sang ViPham.
+              Nếu là Admin khu vực: hệ thống chỉ tạo báo cáo chờ duyệt. Nếu là Admin/SuperAdmin: hệ thống sẽ trực tiếp ghi quyết định và thực thi ngay lập tức.
             </p>
           </div>
 
@@ -802,7 +802,7 @@ async function openEditGCN(maYC, currentStatus, currentNote) {
     async function deleteTruongDiem(rowNumber, maTNV) {
       if (!rowNumber) return alert('Không xác định được dòng cần xóa');
       if (!confirm(`Xóa phân công trưởng điểm của ${maTNV}?
-Thao tác này sẽ xóa khỏi sheet TruongDiemTruc.`)) return;
+Thao tác này sẽ xóa không ghi nhận số buổi của Trưởng điểm trực.`)) return;
       const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'adminXoaTruongDiemTruc', sessionId, rowNumber, maTNV, adminName }) });
       const res = await response.json();
       if (res.success) {
